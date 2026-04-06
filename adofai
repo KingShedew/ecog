@@ -9,15 +9,13 @@
 <!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
 
 
-<link rel="stylesheet"
-	href="https://cdn.jsdelivr.net/gh/KingShedew/ecog-adofai@main/style.css">
-<script
-	src="https://cdn.jsdelivr.net/gh/KingShedew/ecog-adofai@main/UnityProgress.js">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/KingShedew/ecog-adofai@main/style.css">
+<script src="https://cdn.jsdelivr.net/gh/KingShedew/ecog-adofai@main/UnityProgress.js">
 </script>
-<script src="https://cdn.jsdelivr.net/gh/KingShedew/ecog-adofai@main/UnityLoader.js">
+<script src="https://cdn.jsdelivr.net/gh/udbsite/adofai@f170efcb1b532312817e69f26ce3f84c99940238/Build/UnityLoader.js">
 </script>
 <script>
-	var gameInstance = UnityLoader.instantiate("gameContainer", "https://cdn.jsdelivr.net/gh/KingShedew/ecog-adofai@main/adofaiii4.json", {onProgress: UnityProgress,Module:{onRuntimeInitialized: function() {UnityProgress(gameInstance, "complete")}}}); 
+	var gameInstance = UnityLoader.instantiate("gameContainer", "https://cdn.jsdelivr.net/gh/udbsite/adofai@f170efcb1b532312817e69f26ce3f84c99940238/Build/adofaiii4.json", {onProgress: UnityProgress,Module:{onRuntimeInitialized: function() {UnityProgress(gameInstance, "complete")}}}); 
 </script>
 <script src=""></script>
 <div class="webgl-content">
