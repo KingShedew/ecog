@@ -1,8 +1,8 @@
-SandBoxels.HTML
 <html>
 
-<!-- Ultimate Game Stash file -->
-<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+<!-- This is a file by the Elite Composite Of Games--> 
+<!-- All rights go to the owner of this game. -->
+<!-- For ECOG go to https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
 
 
 <!DOCTYPE html>
@@ -11,7 +11,7 @@ SandBoxels.HTML
 <head>
   <base href="https://cdn.jsdelivr.net/gh/R74nCom/sandboxels@main/">
 	<meta charset="utf-8">
-	<title id="titleTag">Sandboxels - Experiment with Pixels</title>
+	<title id="titleTag">Sandboxels ecog </title>
 	<meta name="description" content="Relax or experiment with over 500 materials in this falling sand simulator, featuring heat, chemical reactions, density, burning, explosions." id="pageDesc">
 	<meta name="keywords" content="falling sand, elements, pixel art, simulator, powder, toy, chemistry, science, educational">
 	<meta name="author" content="R74n">
