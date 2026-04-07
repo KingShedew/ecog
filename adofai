@@ -6,10 +6,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/KingShedew/ecog-adofai@main/style.css">
 <script src="https://cdn.jsdelivr.net/gh/KingShedew/ecog-adofai@main/UnityProgress.js">
 </script>
-<script src="https://cdn.jsdelivr.net/gh/udbsite/adofai@f170efcb1b532312817e69f26ce3f84c99940238/Build/UnityLoader.js">
+<script src="https://cdn.jsdelivr.net/gh/KingShedew/elitecompositeadofai@main/Build/UnityLoader.js">
 </script>
 <script>
-	var gameInstance = UnityLoader.instantiate("gameContainer", "https://cdn.jsdelivr.net/gh/udbsite/adofai@f170efcb1b532312817e69f26ce3f84c99940238/Build/adofaiii4.json", {onProgress: UnityProgress,Module:{onRuntimeInitialized: function() {UnityProgress(gameInstance, "complete")}}}); 
+	var gameInstance = UnityLoader.instantiate("gameContainer", "https://cdn.jsdelivr.net/gh/KingShedew/elitecompositeadofai@main/Build/adofaiii4.json", {onProgress: UnityProgress,Module:{onRuntimeInitialized: function() {UnityProgress(gameInstance, "complete")}}}); 
 </script>
 <script src=""></script>
 <div class="webgl-content">
