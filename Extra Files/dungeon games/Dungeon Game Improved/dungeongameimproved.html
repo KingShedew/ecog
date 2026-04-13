@@ -1,0 +1,1220 @@
+<!doctype html><html><head></head><body><!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-900">
+
+<!-- This is a file by the Elite Composite Of Games--> 
+<!-- All rights go to the owner of this game. -->
+<!-- For ECOG go to https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
+	
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>The Malleable Maze (Expanded Arsenal)</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+	<style>
+		body {
+			font-family: 'Inter', sans-serif;
+		}
+
+		/* Styles for true full-screen experience -> ADJUSTED TO CENTER CONTENT */
+		.full-screen-container {
+			width: 100vw;
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			/* Changed from flex-start to center the content */
+			padding: 0;
+			margin: 0;
+			overflow: hidden;
+		}
+
+		/* The main content box acts as a container with a border/shadow -> ADJUSTED TO CONSTRICT SIZE */
+		.game-content-box {
+			width: 90vw;
+			/* Take up 90% of viewport width */
+			height: 90vh;
+			/* Take up 90% of viewport height */
+			max-width: 1200px;
+			/* New: Constrain the game's max width */
+			max-height: 800px;
+			/* New: Constrain the game's max height */
+			display: flex;
+			flex-direction: column;
+			margin: 1rem;
+			background-color: transparent;
+			padding: 0;
+		}
+
+		/* The canvas now takes all the available space within the constrained box */
+		#gameCanvas {
+			flex-grow: 1;
+			width: 100%;
+			height: 100%;
+			border: 2px solid #374151;
+		}
+
+		canvas {
+			background-color: #0c101b;
+			display: block;
+			cursor: crosshair;
+			border-radius: 0.5rem;
+		}
+
+		/* Style for buttons and modals */
+		.btn-primary {
+			@apply bg-indigo-600 hover: bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-150;
+		}
+
+		.btn-danger {
+			@apply bg-red-600 hover: bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-150;
+		}
+
+		.modal-overlay {
+			/* This class is responsible for centering the Game Over/Start Modal */
+			@apply fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50;
+		}
+
+		.modal-content {
+			@apply bg-gray-800 p-8 rounded-xl shadow-2xl max-w-lg w-full text-white;
+		}
+
+		.custom-scrollbar::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		.custom-scrollbar::-webkit-scrollbar-track {
+			background: #1f2937;
+			border-radius: 4px;
+		}
+
+		.custom-scrollbar::-webkit-scrollbar-thumb {
+			background: #4b5563;
+			border-radius: 4px;
+		}
+
+		.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+			background: #6b7280;
+		}
+	</style>
+</head>
+
+<body class="h-full flex items-center justify-center full-screen-container">
+
+	<div class="bg-gray-800 p-0 rounded-xl shadow-2xl game-content-box">
+		<canvas id="gameCanvas" width="1" height="1"></canvas>
+	</div>
+
+	<div id="controls-overlay" class="fixed top-4 right-4 z-40 flex flex-col space-y-2">
+		<button id="toggle-spell-btn" class="btn-primary py-2 px-4 text-sm">Next Spell (Q/F)</button>
+		<button id="cast-spell-btn" class="btn-danger py-2 px-4 text-sm">Cast (E)</button>
+		<button id="shop-btn" class="btn-primary py-2 px-4 text-sm">Open Shop (Tab)</button>
+	</div>
+
+
+	<div id="game-over-screen" class="modal-overlay hidden">
+		<div class="modal-content text-center">
+			<h2 class="text-4xl font-extrabold mb-4 text-red-400">Game Over!</h2>
+			<p id="final-score" class="text-2xl mb-6 text-white">You survived 0 waves.</p>
+			<button id="restart-game-btn" class="btn-primary text-xl px-8 py-3">Play Again</button>
+		</div>
+	</div>
+
+	<div id="shop-modal" class="fixed inset-0 flex justify-end z-50 hidden">
+		<div class="bg-gray-800 p-6 shadow-2xl w-96 h-full text-white flex flex-col rounded-l-xl">
+			<h2 class="text-3xl font-bold mb-4 text-yellow-400">The Mage's Emporium</h2>
+			<p class="text-gray-400 mb-4">Current Gold:
+				<span id="shop-gold-display" class="font-bold text-yellow-300">0</span></p>
+
+			<div class="grid grid-cols-1 gap-6 flex-grow custom-scrollbar overflow-y-auto pr-2">
+
+				<div class="bg-gray-900 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-3 text-indigo-300">Permanent Upgrades</h3>
+					<div id="upgrade-list" class="space-y-3">
+					</div>
+				</div>
+
+				<div class="bg-gray-900 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-3 text-blue-300">Spells & Consumables</h3>
+					<div id="spell-list" class="space-y-3">
+					</div>
+				</div>
+			</div>
+
+			<button id="close-shop-btn" class="btn-primary mt-6">Close Shop (Tab)</button>
+		</div>
+	</div>
+
+
+	<script>
+		// Wrap the entire script in an IIFE to contain variable scope.
+        (function() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            let W; 
+            let H;
+
+            // Function to resize the canvas dynamically
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+
+                W = rect.width;
+                H = rect.height;
+                
+                if (gameState.screen === 'game' && gameState.player.x && gameState.player.y) {
+                    gameState.player.x = Math.max(gameState.player.radius, Math.min(W - gameState.player.radius, gameState.player.x));
+                    gameState.player.y = Math.max(gameState.player.radius, Math.min(H - gameState.player.radius, gameState.player.y));
+                }
+            }
+
+            // --- GAME STATE ---
+            let gameState = {
+                screen: 'start', // 'start', 'game', 'shop', 'gameover'
+                lastUpdateTime: 0,
+                
+                player: {
+                    x: 0, y: 0, 
+                    radius: 15,
+                    color: '#34d399',
+                    speed: 180, 
+                    health: 100,
+                    maxHealth: 100,
+                    mana: 50,
+                    maxMana: 50,
+                    manaRegenRate: 5, 
+                    attackCooldown: 0.3, 
+                    lastAttackTime: 0,
+                    mouseX: 0,
+                    mouseY: 0,
+                    angle: 0,
+                    gold: 0,
+                    
+                    // Added upgradeLevels to track purchases
+                    upgradeLevels: {
+                        maxHealth: 0,
+                        manaRegen: 0,
+                        playerSpeed: 0,
+                        weaponDamage: 0
+                    },
+                    
+                    weapon: {
+                        damage: 10,
+                        bulletSpeed: 500,
+                        fireRate: 0.2,
+                        cooldownTimer: 0,
+                    },
+                    
+                    knownSpells: ['Fireball', 'Ice Shard', 'Lightning Bolt'],
+                    activeSpellIndex: 0,
+                    spellCooldowns: { 
+                        'Fireball': 0,
+                        'Ice Shard': 0,
+                        'Lightning Bolt': 0,
+                    },
+                },
+
+                projectiles: [],
+                enemies: [],
+                particles: [],
+                
+                wave: 0,
+                isWaveActive: false,
+                enemySpawnRate: 3.0,
+                lastSpawnTime: 0,
+                enemiesRemainingInWave: 0,
+                totalEnemiesForWave: 0,
+
+                keys: {
+                    arrowup: false, arrowdown: false, arrowleft: false, arrowright: false,
+                    w: false, a: false, s: false, d: false
+                },
+            };
+
+            // --- CONFIG & DATA ---
+            const ENEMY_CONFIG = {
+                'Basic Slime': { color: '#10b981', radius: 12, health: 30, speed: 100, damage: 5, gold: 5 },
+                'Fast Zombie': { color: '#ef4444', radius: 10, health: 20, speed: 180, damage: 10, gold: 8 },
+                'Tank Golem': { color: '#f97316', radius: 20, health: 150, speed: 60, damage: 15, gold: 20 }
+            };
+            
+            // MODIFIED: Cooldown reduced by 3/4 (new cooldown = 0.25 * old cooldown)
+            const SPELL_CONFIG = {
+                'Fireball': { manaCost: 15, cooldown: 5.0 * 0.25, damage: 50, radius: 10, speed: 350, color: '#f87171', effect: 'AOE Burn', cast: castFireball },
+                'Ice Shard': { manaCost: 25, cooldown: 7.0 * 0.25, damage: 30, radius: 5, speed: 800, color: '#60a5fa', effect: 'Pierce/Slow', cast: castIceShard },
+                'Lightning Bolt': { manaCost: 40, cooldown: 10.0 * 0.25, damage: 80, radius: 2, speed: 1000, color: '#fcd34d', effect: 'Chain', cast: castLightningBolt }
+            };
+
+            // MODIFIED: 'cost' changed to 'baseCost'
+            const UPGRADES = [
+                { id: 'maxHealth', name: 'Max Health', description: 'Increases max HP by 25.', baseCost: 50, effect: () => { gameState.player.maxHealth += 25; gameState.player.health += 25; } },
+                { id: 'manaRegen', name: 'Mana Regeneration', description: 'Increases mana regen rate by 1.5/s.', baseCost: 75, effect: () => { gameState.player.manaRegenRate += 1.5; } },
+                { id: 'playerSpeed', name: 'Movement Speed', description: 'Increases player speed by 40.', baseCost: 100, effect: () => { gameState.player.speed += 40; } },
+                { id: 'weaponDamage', name: 'Weapon Damage', description: 'Increases base weapon damage by 5.', baseCost: 60, effect: () => { gameState.player.weapon.damage += 5; } },
+            ];
+
+            // NEW FUNCTION: Calculates the current cost based on level
+            function getCurrentUpgradeCost(upgrade) {
+                const level = gameState.player.upgradeLevels[upgrade.id] || 0;
+                // Cost increases by 50% of the base cost for each level purchased
+                return Math.round(upgrade.baseCost * (1 + level * 0.5)); 
+            }
+
+
+            // --- CORE GAME LOOP & DRAWING ---
+
+            function gameLoop(timestamp) {
+                if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+                     resizeCanvas();
+                }
+                
+                const deltaTime = (timestamp - gameState.lastUpdateTime) / 1000;
+                gameState.lastUpdateTime = timestamp;
+
+                if (gameState.screen === 'game') {
+                    update(deltaTime);
+                    draw();
+                } else if (gameState.screen === 'start' || gameState.screen === 'gameover' || gameState.screen === 'shop') {
+                    update(deltaTime); // Continue updating for background movement, but disable controls below
+                    draw();
+                }
+
+                requestAnimationFrame(gameLoop);
+            }
+
+            function update(deltaTime) {
+                updatePlayer(deltaTime);
+                
+                if (gameState.isWaveActive) {
+                    spawnEnemies(deltaTime);
+                } else if (gameState.enemies.length === 0 && gameState.projectiles.length === 0) {
+                    startNextWave();
+                }
+
+                updateProjectiles(deltaTime);
+                updateEnemies(deltaTime);
+                updateParticles(deltaTime);
+                handleCollisions();
+                
+                if (gameState.player.health <= 0) {
+                    endGame();
+                }
+                
+                updateHUD();
+            }
+
+            function draw() {
+                ctx.fillStyle = '#0c101b';
+                ctx.fillRect(0, 0, W, H);
+
+                if (gameState.screen === 'game' || gameState.screen === 'shop') {
+                    drawParticles();
+                    drawProjectiles();
+                    drawEnemies();
+                    drawPlayer();
+                    drawHUDOnCanvas(); // All HUD info drawn here now
+                } else if (gameState.screen === 'start') {
+                    drawStartScreen();
+                } else if (gameState.screen === 'gameover') {
+                    drawGameOverScreen();
+                }
+            }
+            
+            // --- DRAWING IMPLEMENTATIONS ---
+            
+            function drawPlayer() {
+                const p = gameState.player;
+                
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                const dx = p.mouseX - p.x;
+                const dy = p.mouseY - p.y;
+                p.angle = Math.atan2(dy, dx);
+                
+                ctx.rotate(p.angle);
+                
+                ctx.fillStyle = '#fef3c7';
+                ctx.fillRect(p.radius, -3, 25, 6); 
+                
+                ctx.restore();
+                
+                // Draw Health and Mana bars above the player (local bars, not global stats)
+                const barWidth = 40;
+                const barHeight = 4;
+                
+                ctx.fillStyle = '#6b7280'; 
+                ctx.fillRect(p.x - barWidth / 2, p.y - p.radius - 12, barWidth, barHeight);
+                ctx.fillStyle = '#ef4444'; 
+                const healthFill = (p.health / p.maxHealth) * barWidth;
+                ctx.fillRect(p.x - barWidth / 2, p.y - p.radius - 12, healthFill, barHeight);
+                
+                ctx.fillStyle = '#6b7280'; 
+                ctx.fillRect(p.x - barWidth / 2, p.y - p.radius - 7, barWidth, barHeight);
+                ctx.fillStyle = '#3b82f6'; 
+                const manaFill = (p.mana / p.maxMana) * barWidth;
+                ctx.fillRect(p.x - barWidth / 2, p.y - p.radius - 7, manaFill, barHeight);
+            }
+
+            function drawEnemies() {
+                gameState.enemies.forEach(e => {
+                    ctx.fillStyle = e.color;
+                    ctx.beginPath();
+                    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    const barWidth = 30;
+                    const barHeight = 3;
+                    
+                    ctx.fillStyle = '#6b7280';
+                    ctx.fillRect(e.x - barWidth / 2, e.y - e.radius - 8, barWidth, barHeight);
+                    ctx.fillStyle = '#ef4444';
+                    const healthFill = (e.health / e.maxHealth) * barWidth;
+                    ctx.fillRect(e.x - barWidth / 2, e.y - e.radius - 8, healthFill, barHeight);
+                });
+            }
+
+            function drawProjectiles() {
+                gameState.projectiles.forEach(p => {
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    if (p.type !== 'bullet') {
+                        ctx.globalAlpha = 0.5;
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = p.color;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius * 1.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                        ctx.globalAlpha = 1.0;
+                    }
+                });
+            }
+            
+            function drawParticles() {
+                gameState.particles.forEach(p => {
+                    if (p.isText) {
+                        ctx.font = '14px Inter';
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = p.alpha;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(p.text, p.x, p.y);
+                    } else {
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = p.alpha;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+                ctx.globalAlpha = 1.0; // Ensure full opacity is restored after particles
+            }
+
+            function drawHUDOnCanvas() {
+                ctx.save(); // Isolate HUD drawing context
+                ctx.globalAlpha = 1.0; // Ensure full opacity for text
+                
+                const p = gameState.player;
+                
+                // --- 1. Draw Global Stats in Top Left Corner ---
+                ctx.textAlign = 'left';
+                ctx.font = '20px Inter';
+                
+                // Health
+                ctx.fillStyle = '#ffffff'; 
+                ctx.fillText(`HP: ${Math.round(p.health)}/${p.maxHealth}`, 20, 30);
+
+                // Mana
+                ctx.fillStyle = '#ffffff'; 
+                ctx.fillText(`MP: ${Math.round(p.mana)}/${p.maxMana}`, 20, 60);
+
+                // Gold
+                ctx.fillStyle = '#ffffff'; 
+                ctx.fillText(`Gold: ${p.gold}`, 20, 90);
+
+                // Wave
+                ctx.fillStyle = '#ffffff'; 
+                ctx.fillText(`Wave: ${gameState.wave}`, 20, 120);
+
+                // --- 2. Draw Current Spell and Cooldown in Top Center ---
+                ctx.textAlign = 'center';
+                ctx.font = '24px Inter';
+                const spellName = p.knownSpells[p.activeSpellIndex];
+                const cooldown = p.spellCooldowns[spellName];
+                
+                // Spell Name
+                ctx.fillStyle = '#ffffff'; 
+                ctx.fillText(spellName, W / 2, 40);
+                
+                // Cooldown status
+                ctx.font = '16px Inter';
+                if (cooldown > 0) {
+                    ctx.fillStyle = '#ef4444'; // Red (Cooldown)
+                    ctx.fillText(`[CD: ${cooldown.toFixed(1)}s]`, W / 2, 65);
+                } else {
+                    ctx.fillStyle = '#34d399'; // Green (Ready)
+                    ctx.fillText(`[Ready]`, W / 2, 65);
+                }
+
+
+                // --- 3. Draw Crosshair at mouse position (Existing logic) ---
+                ctx.strokeStyle = '#fef3c7';
+                ctx.lineWidth = 1;
+                
+                ctx.beginPath();
+                ctx.moveTo(p.mouseX, p.mouseY - 8);
+                ctx.lineTo(p.mouseX, p.mouseY - 2);
+                ctx.moveTo(p.mouseX, p.mouseY + 2);
+                ctx.lineTo(p.mouseX, p.mouseY + 8);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(p.mouseX - 8, p.mouseY);
+                ctx.lineTo(p.mouseX - 2, p.mouseY);
+                ctx.moveTo(p.mouseX + 2, p.mouseY);
+                ctx.lineTo(p.mouseX + 8, p.mouseY);
+                ctx.stroke();
+                
+                ctx.restore(); // Restore context to original state
+            }
+            
+            function drawStartScreen() {
+                // This function is now unused but kept for robustness
+                ctx.fillStyle = '#0c101b';
+                ctx.fillRect(0, 0, W, H);
+            }
+            
+            function drawGameOverScreen() {
+                ctx.fillStyle = 'rgba(12, 16, 27, 0.9)';
+                ctx.fillRect(0, 0, W, H);
+                
+                ctx.font = '48px Inter';
+                ctx.fillStyle = '#ef4444';
+                ctx.textAlign = 'center';
+                ctx.fillText('Game Over', W / 2, H / 2 - 40);
+                
+                ctx.font = '24px Inter';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(`Waves Survived: ${gameState.wave}`, W / 2, H / 2 + 20);
+            }
+
+            // --- UPDATE IMPLEMENTATIONS (Functions remain the same) ---
+
+            function updatePlayer(deltaTime) {
+                const p = gameState.player;
+                let dx = 0;
+                let dy = 0;
+
+                // Player movement input is only processed if screen is 'game'
+                if (gameState.screen === 'game' && p.health > 0) {
+                    if (gameState.keys.w || gameState.keys.arrowup) dy -= 1;
+                    if (gameState.keys.s || gameState.keys.arrowdown) dy += 1;
+                    if (gameState.keys.a || gameState.keys.arrowleft) dx -= 1;
+                    if (gameState.keys.d || gameState.keys.arrowright) dx += 1;
+                }
+
+                if (dx !== 0 && dy !== 0) {
+                    const magnitude = Math.sqrt(dx * dx + dy * dy);
+                    dx /= magnitude;
+                    dy /= magnitude;
+                }
+
+                p.x += dx * p.speed * deltaTime;
+                p.y += dy * p.speed * deltaTime;
+
+                p.x = Math.max(p.radius, Math.min(W - p.radius, p.x));
+                p.y = Math.max(p.radius, Math.min(H - p.radius, p.y));
+                
+                p.mana = Math.min(p.maxMana, p.mana + p.manaRegenRate * deltaTime);
+                
+                if (p.weapon.cooldownTimer > 0) {
+                    p.weapon.cooldownTimer = Math.max(0, p.weapon.cooldownTimer - deltaTime);
+                }
+                
+                for (const spellName in p.spellCooldowns) {
+                    if (p.spellCooldowns[spellName] > 0) {
+                        p.spellCooldowns[spellName] = Math.max(0, p.spellCooldowns[spellName] - deltaTime);
+                    }
+                }
+            }
+
+            function updateProjectiles(deltaTime) {
+                gameState.projectiles = gameState.projectiles.filter(p => {
+                    p.x += p.vx * deltaTime;
+                    p.y += p.vy * deltaTime;
+                    p.life -= deltaTime;
+                    
+                    return p.x > 0 && p.x < W && p.y > 0 && p.y < H && p.life > 0;
+                });
+            }
+
+            function updateEnemies(deltaTime) {
+                const p = gameState.player;
+                
+                gameState.enemies.forEach(e => {
+                    const dx_p = p.x - e.x;
+                    const dy_p = p.y - e.y;
+                    const dist_p = Math.sqrt(dx_p * dx_p + dy_p * dy_p);
+                    
+                    let vx = 0, vy = 0;
+
+                    if (dist_p > 0) {
+                        vx += (dx_p / dist_p);
+                        vy += (dy_p / dist_p);
+                    }
+
+                    const separationForce = 0.5;
+                    gameState.enemies.forEach(other => {
+                        if (e === other) return;
+
+                        const dx_o = e.x - other.x;
+                        const dy_o = e.y - other.y;
+                        const dist_o = Math.sqrt(dx_o * dx_o + dy_o * dy_o);
+                        
+                        const minSeparation = e.radius + other.radius + 5;
+                        
+                        if (dist_o < minSeparation && dist_o > 0) {
+                            const repulse_dx = dx_o / dist_o;
+                            const repulse_dy = dy_o / dist_o;
+                            
+                            const strength = (minSeparation - dist_o) / minSeparation * separationForce;
+                            vx += repulse_dx * strength;
+                            vy += repulse_dy * strength;
+                        }
+                    });
+                    
+                    const totalMag = Math.sqrt(vx * vx + vy * vy);
+                    if (totalMag > 0) {
+                        const final_vx = (vx / totalMag) * e.speed * deltaTime;
+                        const final_vy = (vy / totalMag) * e.speed * deltaTime;
+                        e.x += final_vx;
+                        e.y += final_vy;
+                    }
+
+                    if (e.slowDuration > 0) {
+                        e.slowDuration = Math.max(0, e.slowDuration - deltaTime);
+                        e.speed = ENEMY_CONFIG[e.name].speed * 0.5;
+                    } else {
+                        e.speed = ENEMY_CONFIG[e.name].speed;
+                    }
+                });
+                
+                gameState.enemies = gameState.enemies.filter(e => {
+                    const dx = p.x - e.x;
+                    const dy = p.y - e.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < p.radius + e.radius) {
+                        if (e.lastAttackTime + e.attackCooldown < gameState.lastUpdateTime / 1000) {
+                            p.health -= e.damage;
+                            e.lastAttackTime = gameState.lastUpdateTime / 1000;
+                            createDamageParticles(p.x, p.y, e.damage, '#ef4444');
+                            const angle = Math.atan2(dy, dx);
+                            e.x -= Math.cos(angle) * 10;
+                            e.y -= Math.sin(angle) * 10;
+                        }
+                        return true;
+                    }
+                    return true;
+                });
+            }
+            
+            function updateParticles(deltaTime) {
+                gameState.particles = gameState.particles.filter(p => {
+                    p.x += p.vx * deltaTime;
+                    p.y += p.vy * deltaTime;
+                    p.alpha -= p.fadeRate * deltaTime;
+                    
+                    if (!p.isText) {
+                         p.radius -= 5 * deltaTime;
+                    }
+                   
+                    return p.alpha > 0 && (p.isText || p.radius > 0);
+                });
+                ctx.globalAlpha = 1.0; // Ensure full opacity is restored after particles
+            }
+
+            function handleCollisions() {
+                const newProjectiles = [];
+                const enemiesHitThisFrame = new Set();
+                
+                gameState.projectiles.forEach(p => {
+                    let hitEnemy = false;
+                    
+                    gameState.enemies.forEach(e => {
+                        const dx = e.x - p.x;
+                        const dy = e.y - p.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist < e.radius + p.radius) {
+                            if (enemiesHitThisFrame.has(e)) return;
+
+                            e.health -= p.damage;
+                            enemiesHitThisFrame.add(e);
+                            
+                            createDamageParticles(e.x, e.y, p.damage, p.color);
+
+                            if (p.effect === 'AOE Burn') {
+                                applyAoeBurn(e.x, e.y, 75, 20);
+                            } else if (p.effect === 'Pierce/Slow') {
+                                e.slowDuration = 2.0;
+                                p.life += 10;
+                            } else if (p.effect === 'Chain') {
+                                chainLightning(e, p.damage);
+                            }
+                            
+                            if (p.effect !== 'Pierce/Slow') {
+                                hitEnemy = true;
+                            }
+
+                            if (e.health <= 0) {
+                                killEnemy(e);
+                            }
+                        }
+                    });
+                    
+                    if (!hitEnemy) {
+                        newProjectiles.push(p);
+                    }
+                });
+                
+                gameState.projectiles = newProjectiles;
+            }
+
+            // --- WAVE & SPAWNING LOGIC (No change) ---
+
+            function startNextWave() {
+                gameState.wave++;
+                gameState.isWaveActive = true;
+                gameState.totalEnemiesForWave = 5 + gameState.wave * 3;
+                gameState.enemiesRemainingInWave = gameState.totalEnemiesForWave;
+                gameState.enemySpawnRate = Math.max(0.5, 3.0 - gameState.wave * 0.1);
+            }
+
+            function spawnEnemies(deltaTime) {
+                if (gameState.enemiesRemainingInWave > 0) {
+                    gameState.lastSpawnTime += deltaTime;
+                    
+                    if (gameState.lastSpawnTime >= gameState.enemySpawnRate) {
+                        const enemyType = pickEnemyType();
+                        createEnemy(enemyType);
+                        gameState.enemiesRemainingInWave--;
+                        gameState.lastSpawnTime = 0;
+                    }
+                } else if (gameState.enemies.length === 0) {
+                    gameState.isWaveActive = false;
+                }
+            }
+            
+            function pickEnemyType() {
+                 if (gameState.wave < 3) return 'Basic Slime';
+                 if (gameState.wave < 6) { return Math.random() < 0.7 ? 'Basic Slime' : 'Fast Zombie'; }
+                 if (gameState.wave < 10) {
+                     const rand = Math.random();
+                     if (rand < 0.5) return 'Basic Slime';
+                     if (rand < 0.8) return 'Fast Zombie';
+                     return 'Tank Golem';
+                 }
+                 const types = Object.keys(ENEMY_CONFIG);
+                 return types[Math.floor(Math.random() * types.length)];
+            }
+
+            function createEnemy(name) {
+                const config = ENEMY_CONFIG[name];
+                let x, y;
+
+                if (Math.random() < 0.5) {
+                    x = Math.random() * W;
+                    y = Math.random() < 0.5 ? -config.radius : H + config.radius;
+                } else {
+                    x = Math.random() < 0.5 ? -config.radius : W + config.radius;
+                    y = Math.random() * H;
+                }
+                
+                const newEnemy = {
+                    ...config,
+                    name: name,
+                    x: x,
+                    y: y,
+                    maxHealth: config.health,
+                    lastAttackTime: 0,
+                    attackCooldown: 1.0,
+                    slowDuration: 0,
+                };
+                gameState.enemies.push(newEnemy);
+            }
+            
+            function killEnemy(enemy) {
+                gameState.player.gold += enemy.gold;
+                createDamageParticles(enemy.x, enemy.y, 0, enemy.color, 15);
+                gameState.enemies = gameState.enemies.filter(e => e !== enemy);
+            }
+
+            // --- WEAPON & SPELL CASTING (No change) ---
+
+            function handleAttack() {
+                // Only allow attack if not in shop/gameover screen
+                if (gameState.screen !== 'game') return;
+
+                const p = gameState.player;
+                if (p.weapon.cooldownTimer <= 0) {
+                    p.weapon.cooldownTimer = p.weapon.fireRate;
+                    
+                    const bullet = {
+                        type: 'bullet',
+                        x: p.x + Math.cos(p.angle) * p.radius,
+                        y: p.y + Math.sin(p.angle) * p.radius,
+                        vx: Math.cos(p.angle) * p.weapon.bulletSpeed,
+                        vy: Math.sin(p.angle) * p.weapon.bulletSpeed,
+                        damage: p.weapon.damage,
+                        radius: 4,
+                        color: '#fef3c7',
+                        life: 2.0,
+                        effect: 'none'
+                    };
+                    gameState.projectiles.push(bullet);
+                    
+                    for(let i = 0; i < 3; i++) {
+                        createParticle(p.x, p.y, '#fef3c7', 0.5, -p.angle + (Math.random() - 0.5) * 0.5, 50, 2);
+                    }
+                }
+            }
+            
+            function handleSpellCast() {
+                // Only allow cast if not in shop/gameover screen
+                if (gameState.screen !== 'game') return;
+                
+                const p = gameState.player;
+                const spellName = p.knownSpells[p.activeSpellIndex];
+                const spell = SPELL_CONFIG[spellName];
+                
+                if (p.spellCooldowns[spellName] > 0) {
+                    for(let i = 0; i < 5; i++) { createParticle(p.x, p.y, '#f87171', 0.8, Math.random() * Math.PI * 2, 80, 1); }
+                    return;
+                }
+
+
+                if (p.mana >= spell.manaCost) {
+                    p.mana -= spell.manaCost;
+                    p.spellCooldowns[spellName] = spell.cooldown;
+                    spell.cast(p.x, p.y, p.angle, spell);
+
+                    for(let i = 0; i < 5; i++) { createParticle(p.x, p.y, spell.color, 0.8, Math.random() * Math.PI * 2, 80, 1); }
+                    
+                } else {
+                    for(let i = 0; i < 5; i++) { createParticle(p.x, p.y, '#3b82f6', 0.8, Math.random() * Math.PI * 2, 80, 1); }
+                }
+            }
+            
+            function toggleNextSpell() {
+                // Only allow toggle if not in shop/gameover screen
+                if (gameState.screen !== 'game') return;
+                
+                const p = gameState.player;
+                p.activeSpellIndex = (p.activeSpellIndex + 1) % p.knownSpells.length;
+                updateHUD();
+            }
+
+            function castFireball(x, y, angle, config) {
+                const p = gameState.player;
+                const dx = Math.cos(angle);
+                const dy = Math.sin(angle);
+                
+                const fireball = {
+                    type: 'spell',
+                    x: x + dx * p.radius, y: y + dy * p.radius,
+                    vx: dx * config.speed, vy: dy * config.speed,
+                    damage: config.damage, radius: config.radius,
+                    color: config.color, life: 3.0, effect: config.effect
+                };
+                gameState.projectiles.push(fireball);
+                
+                for(let i = 0; i < 10; i++) { createParticle(x + dx * p.radius, y + dy * p.radius, config.color, 0.8, angle + (Math.random() - 0.5) * 1.5, 100, 3); }
+            }
+            
+            function castIceShard(x, y, angle, config) {
+                const p = gameState.player;
+                const dx = Math.cos(angle);
+                const dy = Math.sin(angle);
+                
+                for(let i = -1; i <= 1; i++) {
+                    const coneAngle = angle + i * 0.15;
+                    const shard = {
+                        type: 'spell',
+                        x: x + dx * p.radius, y: y + dy * p.radius,
+                        vx: Math.cos(coneAngle) * config.speed, vy: Math.sin(coneAngle) * config.speed,
+                        damage: config.damage, radius: config.radius,
+                        color: config.color, life: 5.0, effect: config.effect
+                    };
+                    gameState.projectiles.push(shard);
+                }
+            }
+
+            let chainedEnemies = new Set();
+            
+            function castLightningBolt(x, y, angle, config) {
+                let nearestEnemy = null;
+                let minDistance = Infinity;
+                
+                gameState.enemies.forEach(e => {
+                    const dist = Math.sqrt((e.x - x)**2 + (e.y - y)**2);
+                    if (dist < minDistance) { minDistance = dist; nearestEnemy = e; }
+                });
+                
+                if (nearestEnemy) {
+                    const dx_e = nearestEnemy.x - x;
+                    const dy_e = nearestEnemy.y - y;
+                    const angle_e = Math.atan2(dy_e, dx_e);
+
+                    const p = gameState.player;
+                    const bolt = {
+                        type: 'spell',
+                        x: x + Math.cos(angle_e) * p.radius, y: y + Math.sin(angle_e) * p.radius,
+                        vx: Math.cos(angle_e) * config.speed, vy: Math.sin(angle_e) * config.speed,
+                        damage: config.damage, radius: config.radius,
+                        color: config.color, life: 0.5, effect: config.effect
+                    };
+                    gameState.projectiles.push(bolt);
+                    
+                    chainedEnemies.clear();
+                    chainedEnemies.add(nearestEnemy);
+                } else {
+                    const p = gameState.player;
+                    const dx = Math.cos(angle);
+                    const dy = Math.sin(angle);
+                    const misfire = {
+                        type: 'spell', x: x + dx * p.radius, y: y + dy * p.radius,
+                        vx: dx * 100, vy: dy * 100,
+                        damage: 0, radius: 5, color: '#4b5563', life: 0.2, effect: 'none'
+                    };
+                    gameState.projectiles.push(misfire);
+                }
+            }
+            
+            function chainLightning(targetEnemy, baseDamage, maxChains = 3, currentChain = 1) {
+                if (currentChain >= maxChains) return;
+
+                let nearestUnchainedEnemy = null;
+                let minDistance = Infinity;
+
+                gameState.enemies.forEach(e => {
+                    if (!chainedEnemies.has(e)) {
+                        const dist = Math.sqrt((e.x - targetEnemy.x)**2 + (e.y - targetEnemy.y)**2);
+                        if (dist < minDistance) { minDistance = dist; nearestUnchainedEnemy = e; }
+                    }
+                });
+
+                if (nearestUnchainedEnemy) {
+                    const damage = baseDamage * (1 - currentChain * 0.2);
+                    nearestUnchainedEnemy.health -= damage;
+                    chainedEnemies.add(nearestUnchainedEnemy);
+                    
+                    createDamageParticles(nearestUnchainedEnemy.x, nearestUnchainedEnemy.y, damage, '#fcd34d');
+                    createChainParticles(targetEnemy.x, targetEnemy.y, nearestUnchainedEnemy.x, nearestUnchainedEnemy.y, '#fcd34d', 0.2);
+
+                    if (nearestUnchainedEnemy.health <= 0) {
+                        killEnemy(nearestUnchainedEnemy);
+                    } else {
+                        chainLightning(nearestUnchainedEnemy, baseDamage, maxChains, currentChain + 1);
+                    }
+                }
+            }
+
+            // --- EFFECTS & UTILITIES (No change) ---
+            
+            function createParticle(x, y, color, life, angle, speed, radius) {
+                const particle = {
+                    x: x, y: y,
+                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                    color: color, life: life, alpha: 1.0, fadeRate: 1.0 / life,
+                    radius: radius, isText: false
+                };
+                gameState.particles.push(particle);
+            }
+
+            function createDamageParticles(x, y, damage, color, count = 5) {
+                if (damage > 0) {
+                    const damageText = {
+                        x: x, y: y,
+                        vx: (Math.random() - 0.5) * 50, vy: -100,
+                        text: Math.round(damage).toString(),
+                        color: color, life: 1.0, alpha: 1.0, fadeRate: 1.0,
+                        isText: true, radius: 0
+                    };
+                    gameState.particles.push(damageText);
+                }
+                
+                for (let i = 0; i < count; i++) {
+                    createParticle(
+                        x, y, color, 0.5 + Math.random() * 0.5, Math.random() * Math.PI * 2,
+                        50 + Math.random() * 100, 1 + Math.random() * 2
+                    );
+                }
+            }
+            
+            function createChainParticles(x1, y1, x2, y2, color, life) {
+                const steps = 10;
+                for (let i = 0; i < steps; i++) {
+                    const t = i / steps;
+                    const px = x1 + (x2 - x1) * t + (Math.random() - 0.5) * 10;
+                    const py = y1 + (y2 - y1) * t + (Math.random() - 0.5) * 10;
+                    createParticle(px, py, color, life, Math.random() * Math.PI * 2, 0, 2);
+                }
+            }
+
+            function applyAoeBurn(centerX, centerY, radius, damage) {
+                gameState.enemies.forEach(e => {
+                    const dist = Math.sqrt((e.x - centerX)**2 + (e.y - centerY)**2);
+                    if (dist < radius + e.radius) {
+                        e.health -= damage;
+                        createDamageParticles(e.x, e.y, damage, '#f87171');
+                        if (e.health <= 0) { killEnemy(e); }
+                    }
+                });
+                
+                for(let i = 0; i < 30; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = Math.random() * radius;
+                    createParticle(
+                        centerX + Math.cos(angle) * dist,
+                        centerY + Math.sin(angle) * dist,
+                        '#facc15', 0.5, angle, 0, 3 + Math.random() * 2
+                    );
+                }
+            }
+
+            // --- UI & HUD (Modified for scaling upgrades) ---
+
+            function updateHUD() {
+                const p = gameState.player;
+                
+                document.getElementById('shop-gold-display').textContent = p.gold;
+
+                const spellName = p.knownSpells[p.activeSpellIndex];
+                const castBtn = document.getElementById('cast-spell-btn');
+                const cooldown = p.spellCooldowns[spellName];
+
+                if (cooldown > 0) {
+                    const remaining = cooldown.toFixed(1);
+                    castBtn.textContent = `CD: ${remaining}s`;
+                    castBtn.classList.remove('btn-danger', 'hover:bg-red-700');
+                    castBtn.classList.add('bg-gray-500', 'cursor-not-allowed');
+                    castBtn.disabled = true;
+                } else {
+                    castBtn.textContent = `Cast (E)`;
+                    castBtn.classList.remove('bg-gray-500', 'cursor-not-allowed');
+                    castBtn.classList.add('btn-danger', 'hover:bg-red-700');
+                    castBtn.disabled = false;
+                }
+                
+                document.getElementById('toggle-spell-btn').textContent = `Next Spell: ${p.knownSpells[(p.activeSpellIndex + 1) % p.knownSpells.length]} (Q/F)`;
+
+
+                // Handle Screen Visibility (Modals)
+                document.getElementById('game-over-screen').classList.toggle('hidden', gameState.screen !== 'gameover');
+                document.getElementById('shop-modal').classList.toggle('hidden', gameState.screen !== 'shop');
+
+                // Disable control buttons when shop is open
+                const isShopOpen = gameState.screen === 'shop';
+                document.getElementById('toggle-spell-btn').disabled = isShopOpen;
+                document.getElementById('cast-spell-btn').disabled = isShopOpen || cooldown > 0;
+            }
+            
+            function openShop() {
+                if (gameState.screen === 'game') {
+                    gameState.screen = 'shop';
+                    updateShopModal();
+                    updateHUD(); 
+                } else if (gameState.screen === 'shop') {
+                    closeShop();
+                }
+            }
+            
+            function closeShop() {
+                gameState.screen = 'game';
+                updateHUD();
+            }
+            
+            function updateShopModal() {
+                const upgradeList = document.getElementById('upgrade-list');
+                const spellList = document.getElementById('spell-list');
+                
+                upgradeList.innerHTML = '';
+                spellList.innerHTML = '';
+
+                UPGRADES.forEach(u => {
+                    const upgradeEl = document.createElement('div');
+                    const cost = getCurrentUpgradeCost(u); // Uses dynamic cost calculation
+                    const canAfford = gameState.player.gold >= cost;
+                    const level = gameState.player.upgradeLevels[u.id] || 0;
+
+                    upgradeEl.className = 'bg-gray-700 p-3 rounded-md flex justify-between items-center';
+                    upgradeEl.innerHTML = `
+                        <div>
+                            <p class="font-semibold text-white">${u.name} (Lvl ${level})</p>
+                            <p class="text-xs text-gray-400">${u.description}</p>
+                        </div>
+                        <button id="buy-${u.id}-btn" class="btn-primary py-1 px-3 text-sm ${!canAfford ? 'opacity-50 cursor-not-allowed' : ''}" ${!canAfford ? 'disabled' : ''}>
+                            Buy (${cost} G)
+                        </button>
+                    `;
+                    upgradeList.appendChild(upgradeEl);
+
+                    if (canAfford) {
+                        upgradeEl.querySelector(`#buy-${u.id}-btn`).addEventListener('click', () => {
+                            buyUpgrade(u.id); // Pass only the ID
+                        });
+                    }
+                });
+                
+                Object.entries(SPELL_CONFIG).forEach(([name, config]) => {
+                     const spellEl = document.createElement('div');
+                     spellEl.className = 'bg-gray-700 p-3 rounded-md';
+                     spellEl.innerHTML = `
+                        <p class="font-semibold text-white">${name}</p>
+                        <p class="text-xs text-gray-400">Mana: ${config.manaCost} | Damage: ${config.damage} | Cooldown: ${config.cooldown.toFixed(2)}s | Effect: ${config.effect}</p>
+                    `;
+                     spellList.appendChild(spellEl);
+                });
+            }
+            
+            // MODIFIED: Function now calculates cost internally and increments level
+            function buyUpgrade(id) {
+                const upgrade = UPGRADES.find(u => u.id === id);
+                if (!upgrade) return;
+
+                const currentCost = getCurrentUpgradeCost(upgrade);
+
+                if (gameState.player.gold >= currentCost) {
+                    gameState.player.gold -= currentCost;
+                    upgrade.effect();
+                    // Increment the level of the purchased upgrade
+                    gameState.player.upgradeLevels[id] = (gameState.player.upgradeLevels[id] || 0) + 1; 
+                    updateShopModal();
+                    updateHUD();
+                }
+            }
+
+
+            // --- GAME FLOW (Slightly adjusted for instant start) ---
+
+            function initGame() {
+                resizeCanvas();
+                
+                gameState.player = {
+                    x: W / 2, y: H / 2, 
+                    radius: 15, color: '#34d399', speed: 180,
+                    health: 100, maxHealth: 100, mana: 50, maxMana: 50,
+                    manaRegenRate: 5, attackCooldown: 0.3, lastAttackTime: 0,
+                    mouseX: W / 2, mouseY: H / 2, angle: 0, gold: 0,
+                    
+                    upgradeLevels: { // Reset upgrade levels
+                        maxHealth: 0,
+                        manaRegen: 0,
+                        playerSpeed: 0,
+                        weaponDamage: 0
+                    },
+                    
+                    weapon: { damage: 10, bulletSpeed: 500, fireRate: 0.2, cooldownTimer: 0 },
+                    knownSpells: ['Fireball', 'Ice Shard', 'Lightning Bolt'],
+                    activeSpellIndex: 0,
+                    // Reset cooldowns to initial (reduced) values
+                    spellCooldowns: { 'Fireball': 0, 'Ice Shard': 0, 'Lightning Bolt': 0 },
+                };
+                
+                gameState.projectiles = [];
+                gameState.enemies = [];
+                gameState.particles = [];
+                gameState.wave = 0;
+                gameState.isWaveActive = false;
+                gameState.enemiesRemainingInWave = 0;
+                gameState.totalEnemiesForWave = 0;
+                gameState.enemySpawnRate = 3.0;
+
+                gameState.screen = 'game';
+                gameState.lastUpdateTime = performance.now();
+                updateHUD();
+                startNextWave();
+            }
+
+            function endGame() {
+                gameState.screen = 'gameover';
+                document.getElementById('final-score').textContent = `You survived ${gameState.wave} waves and collected ${gameState.player.gold} gold!`;
+                updateHUD();
+            }
+
+
+            // --- EVENT LISTENERS (Updated to remove start-game-btn listener) ---
+
+            document.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                
+                if (gameState.screen === 'gameover' && key === 'enter') { initGame(); return; }
+                
+                if (gameState.screen === 'shop' && key === 'tab') { closeShop(); e.preventDefault(); return; }
+                if (gameState.screen === 'game' && key === 'tab') { openShop(); e.preventDefault(); return; }
+                
+                if (gameState.screen === 'game') {
+                    if (key === 'e') { handleSpellCast(); } 
+                    else if (key === 'q' || key === 'f') { toggleNextSpell(); } 
+                    else if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+                        gameState.keys[key] = true;
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+                    gameState.keys[key] = false;
+                }
+            });
+            
+            canvas.addEventListener('mousemove', (e) => {
+                // Allows aiming even in shop screen for a visual effect
+                const rect = canvas.getBoundingClientRect();
+                gameState.player.mouseX = e.clientX - rect.left;
+                gameState.player.mouseY = e.clientY - rect.top;
+            });
+
+            // Prevent attack while shop is open
+            canvas.addEventListener('mousedown', (e) => {
+                if (gameState.screen !== 'game') return;
+                handleAttack();
+            });
+            
+            window.addEventListener('resize', resizeCanvas);
+
+
+            // UI Button Handlers
+            document.getElementById('restart-game-btn').addEventListener('click', initGame);
+            document.getElementById('cast-spell-btn').addEventListener('click', handleSpellCast);
+            document.getElementById('toggle-spell-btn').addEventListener('click', toggleNextSpell);
+            document.getElementById('shop-btn').addEventListener('click', openShop);
+            document.getElementById('close-shop-btn').addEventListener('click', closeShop);
+
+
+            // Start the game loop - NOW CALLS initGame DIRECTLY
+            window.onload = function () {
+                initGame();
+                requestAnimationFrame(gameLoop);
+            }
+        })();
+	</script>
+</body>
+
+</html></body><html>
