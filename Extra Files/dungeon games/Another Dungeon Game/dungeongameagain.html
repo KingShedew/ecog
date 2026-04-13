@@ -1,0 +1,462 @@
+<!doctype html><html><head></head><body><!DOCTYPE html>
+<html lang="en">
+
+
+<!-- This is a file by the Elite Composite Of Games--> 
+<!-- All rights go to the owner of this game. -->
+<!-- For ECOG go to https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
+
+
+<head>
+	<meta charset="UTF-8">
+	<title>The Guardian Dungeon r</title>
+	<style>
+		/* CSS Styling */
+		body {
+			font-family: 'Courier New', Courier, monospace;
+			background-color: #1a1a1a;
+			color: #ccc;
+			text-align: center;
+		}
+
+
+		#game-area {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin: 20px auto;
+			width: 600px;
+		}
+
+
+		/* Map Styles */
+		#map-container {
+			border: 3px solid #663300;
+			margin-bottom: 20px;
+			background-color: #000;
+			padding: 10px;
+			line-height: 0;
+			/* Fixes spacing between map tiles */
+		}
+
+
+		.row-container {
+			display: flex;
+		}
+
+
+		.tile {
+			width: 30px;
+			height: 30px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 1.5em;
+			transition: background-color 0.3s;
+		}
+
+
+		.wall {
+			background-color: #333;
+		}
+
+
+		.path {
+			background-color: #444;
+		}
+
+
+		.player {
+			background-color: #009900;
+			color: white;
+			border: 2px solid yellow;
+		}
+
+
+		.enemy {
+			background-color: #990000;
+			color: white;
+		}
+
+
+		.treasure {
+			background-color: gold;
+			color: #333;
+		}
+
+
+		.exit {
+			background-color: #000099;
+			color: white;
+		}
+
+
+		/* Info & Log Styles */
+		#status-panel {
+			display: flex;
+			justify-content: space-around;
+			width: 100%;
+			margin-bottom: 20px;
+			padding: 10px;
+			border: 1px solid #663300;
+			background-color: #333;
+		}
+
+
+		#log {
+			width: 100%;
+			height: 150px;
+			overflow-y: scroll;
+			text-align: left;
+			padding: 10px;
+			border: 1px solid #663300;
+			background-color: #222;
+		}
+
+
+		/* Action Buttons */
+		#controls button {
+			padding: 10px 20px;
+			margin: 5px;
+			background-color: #663300;
+			color: white;
+			border: none;
+			cursor: pointer;
+		}
+
+
+		#controls button:hover {
+			background-color: #884400;
+		}
+	</style>
+</head>
+
+
+<body>
+	<h1>💀💀 The Grid Guardian 💀💀
+        Scroll down for  more 
+  </h1>
+
+
+	<div id="game-area">
+		<div id="status-panel">
+			<div>⚔️ Health: <span id="health-stat"></span></div>
+			<div>💰 Gold: <span id="gold-stat"></span></div>
+			<div>🛡️ Boosts: <span id="potions-stat"></span></div>
+		</div>
+
+
+		<div id="map-container">
+		</div>
+
+
+		<div id="controls">
+			<p>Use the Arrow Keys (or buttons below) to move and interact.</p>
+			<button onclick="movePlayer(0, -1)">North (↑)</button>
+			<div>
+				<button onclick="movePlayer(-1, 0)">West (←)</button>
+				<button onclick="movePlayer(1, 0)">East (→)</button>
+			</div>
+			<button onclick="movePlayer(0, 1)">South (↓)</button>
+			<button onclick="usePotion()" id="potion-btn">Use the mystery poop Potion</button>
+		</div>
+
+
+		<h2>Game Log</h2>
+		<div id="log"></div>
+	</div>
+
+
+	<script>
+		// --- GAME CONFIGURATION ---
+        const MAP_SIZE = 10;
+        const TILE_SIZE = 30; // Matches CSS
+        const START_POS = { x: 1, y: 1 };
+        const WIN_POS = { x: 8, y: 8 };
+
+
+        // Symbols: 1=Wall, 0=Path, P=Player, E=Enemy, T=Treasure, H=Potion, X=Exit
+        let dungeonMap = [
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,0,'P',0,1,0,'H',0,0,1],
+            [1,0,1,0,1,0,1,1,0,1],
+            [1,0,1,0,0,0,1,'E',0,1],
+            [1,0,1,1,1,1,1,0,1,1],
+            [1,0,0,0,0,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,0,1],
+            [1,'T',0,0,0,'E',0,1,0,1],
+            [1,0,0,0,0,0,0,0,'X',1],
+            [1,1,1,1,1,1,1,1,1,1]
+        ];
+
+
+        // --- GAME STATE ---
+        let player = {
+            x: START_POS.x,
+            y: START_POS.y,
+            health: 100,
+            attack: 20,
+            potions: 1,
+            gold: 0
+        };
+        let enemy = null; // Holds the current enemy object during combat
+
+
+        // --- DOM REFERENCES ---
+        const mapContainer = document.getElementById('map-container');
+        const logElement = document.getElementById('log');
+        const healthStat = document.getElementById('health-stat');
+        const goldStat = document.getElementById('gold-stat');
+        const potionsStat = document.getElementById('potions-stat');
+        const potionBtn = document.getElementById('potion-btn');
+
+
+        // --- CORE FUNCTIONS ---
+
+
+        function updateStats() {
+            healthStat.textContent = player.health;
+            goldStat.textContent = player.gold;
+            potionsStat.textContent = player.potions;
+            potionBtn.disabled = player.potions === 0;
+
+
+            if (player.health <= 0) {
+                logMessage("💀 **GAME OVER!** You got hurt and bled to death.", 'red');
+                disableControls();
+            }
+        }
+
+
+        function logMessage(message, color = '#ccc') {
+            const entry = document.createElement('p');
+            entry.innerHTML = message;
+            entry.style.color = color;
+            logElement.appendChild(entry);
+            logElement.scrollTop = logElement.scrollHeight; // Auto-scroll to bottom
+        }
+
+
+        // 1. Draw Map
+        function drawMap() {
+            mapContainer.innerHTML = ''; // Clear map
+            for (let y = 0; y < MAP_SIZE; y++) {
+                const row = document.createElement('div');
+                row.className = 'row-container';
+                for (let x = 0; x < MAP_SIZE; x++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    let content = '';
+
+
+                    switch (dungeonMap[y][x]) {
+                        case 1: tile.classList.add('wall'); break;
+                        case 0: tile.classList.add('path'); break;
+                        case 'P': tile.classList.add('player'); content = 'P'; break;
+                        case 'E': tile.classList.add('enemy'); content = 'E'; break;
+                        case 'T': tile.classList.add('treasure'); content = '$'; break;
+                        case 'H': tile.classList.add('treasure'); content = '💊'; break;
+                        case 'X': tile.classList.add('exit'); content = 'E'; break;
+                        default: tile.classList.add('path'); break;
+                    }
+                    tile.textContent = content;
+                    row.appendChild(tile);
+                }
+                mapContainer.appendChild(row);
+            }
+        }
+
+
+        // 2. Combat System
+        function startCombat(enemyType) {
+            disableControls(true); // Disable movement during combat
+            
+            // Simple enemy setup
+            enemy = {
+                type: enemyType,
+                health: 50,
+                attack: 10
+            };
+            logMessage(`⚔️ A wild ${enemyType} appeared! It has ${enemy.health} HP. Press 'F' or click 'Fight' to attack.`, 'yellow');
+
+
+            // Set up combat controls (temporary button/key)
+            document.addEventListener('keydown', handleCombatKey);
+            
+            // For simplicity, we'll use a temporary attack function called from the log/map area
+            const fightButton = document.createElement('button');
+            fightButton.textContent = 'Fight!';
+            fightButton.id = 'fight-btn';
+            fightButton.onclick = attackEnemy;
+            document.getElementById('controls').prepend(fightButton);
+        }
+
+
+        function attackEnemy() {
+            if (!enemy) return;
+
+
+            // Player attacks
+            const playerDamage = player.attack + Math.floor(Math.random() * 5); // Some variance
+            enemy.health -= playerDamage;
+            logMessage(`➡️ You strike the ${enemy.type} for **${playerDamage}** damage! (${enemy.health} HP left)`);
+
+
+            if (enemy.health <= 0) {
+                logMessage(`🎉 You defeated the ${enemy.type}! You gain 5 gold.`, 'lightgreen');
+                player.gold += 5;
+                endCombat();
+                return;
+            }
+
+
+            // Enemy attacks back
+            const enemyDamage = enemy.attack + Math.floor(Math.random() * 3);
+            player.health -= enemyDamage;
+            logMessage(`⬅️ The ${enemy.type} strikes back for **${enemyDamage}** damage!`, 'red');
+            updateStats();
+
+
+            if (player.health <= 0) {
+                logMessage("💀 Your final hit wasn't enough.", 'red');
+                endCombat(true);
+            }
+        }
+        
+        function endCombat(isGameOver = false) {
+            const fightBtn = document.getElementById('fight-btn');
+            if (fightBtn) fightBtn.remove();
+            
+            document.removeEventListener('keydown', handleCombatKey);
+            enemy = null;
+            if (!isGameOver) {
+                disableControls(false); // Re-enable movement
+                dungeonMap[player.y][player.x] = 0; // Clear enemy tile
+                drawMap();
+            }
+        }
+        
+        function handleCombatKey(event) {
+            if (event.key === 'f' || event.key === 'F') {
+                attackEnemy();
+            }
+        }
+
+
+        // 3. Movement and Interaction
+        function movePlayer(dx, dy) {
+            if (enemy) return; // Prevent movement during combat
+
+
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+
+
+            if (newX >= 0 && newX < MAP_SIZE && newY >= 0 && newY < MAP_SIZE) {
+                const targetTile = dungeonMap[newY][newX];
+
+
+                if (targetTile === 1) {
+                    logMessage('⛔ You ran into a wall.', 'yellow');
+                    return;
+                }
+
+
+                // Interaction Logic
+                let interactionHappened = false;
+                if (targetTile === 'E') {
+                    startCombat('Goblin');
+                    interactionHappened = true;
+                } else if (targetTile === 'T') {
+                    const loot = Math.floor(Math.random() * 30) + 10;
+                    player.gold += loot;
+                    logMessage(`✨ You found a chest! Gained **${loot} Gold**!`, 'gold');
+                } else if (targetTile === 'H') {
+                    player.potions++;
+                    logMessage('💊 Found a Health Potion!', 'lightskyblue');
+                } else if (targetTile === 'X') {
+                    logMessage('🏆 **YOU FOUND THE EXIT! YOU WIN!**', 'chartreuse');
+                    disableControls();
+                    interactionHappened = true;
+                }
+
+
+                // If interaction consumed the tile (not a wall or exit), clear it.
+                if (['E', 'T', 'H'].includes(targetTile)) {
+                    dungeonMap[newY][newX] = 0;
+                }
+
+
+                // Update Map and Player position
+                dungeonMap[player.y][player.x] = 0; // Clear old player position
+                player.x = newX;
+                player.y = newY;
+                dungeonMap[player.y][player.x] = 'P'; // Set new player position
+                
+                logMessage(`Moved to (${player.x}, ${player.y}).`, 'gray');
+                updateStats();
+                drawMap();
+            }
+        }
+
+
+        function usePotion() {
+            if (player.potions > 0 && player.health < 100) {
+                player.potions--;
+                const healAmount = 30;
+                player.health = Math.min(100, player.health + healAmount);
+                logMessage(`💚 Used a potion! Recovered **${healAmount} HP**!`, 'chartreuse');
+                updateStats();
+            } else if (player.health >= 100) {
+                logMessage('You are already at full health.', 'gray');
+            } else {
+                logMessage('You have no potions left!', 'red');
+            }
+        }
+
+
+        function handleMovementKey(event) {
+            // Prevent scrolling
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+                event.preventDefault();
+            }
+            if (enemy) return; // Block movement during combat
+
+
+            switch (event.key) {
+                case 'ArrowUp': movePlayer(0, -1); break;
+                case 'ArrowDown': movePlayer(0, 1); break;
+                case 'ArrowLeft': movePlayer(-1, 0); break;
+                case 'ArrowRight': movePlayer(1, 0); break;
+            }
+        }
+        
+        function disableControls(combat = false) {
+            document.removeEventListener('keydown', handleMovementKey);
+            const buttons = document.querySelectorAll('#controls button');
+            buttons.forEach(btn => btn.disabled = true);
+            if (combat) {
+                // Combat logic will handle its own temporary controls
+            } else {
+                // Game Over/Win state
+            }
+        }
+
+
+
+
+        // --- GAME STARTUP ---
+        function startGame() {
+            drawMap();
+            updateStats();
+            document.addEventListener('keydown', handleMovementKey);
+            logMessage("Welcome, Grid Guardian! Find the 'E'xit (X). Good luck!", 'lightcoral');
+        }
+
+
+        startGame();
+	</script>
+</body>
+
+
+</html></body><html>
