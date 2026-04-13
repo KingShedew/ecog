@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodeca-Jump 3D Platformer </title>
+    <!-- Load Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js (Rendering Engine) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load Cannon.js (Physics Engine) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #1f2937;
+        }
+        canvas { 
+            display: block; 
+            touch-action: none; 
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 20;
+        }
+        .btn-fancy {
+            @apply px-6 py-3 m-2 font-bold text-lg rounded-xl transition duration-200 shadow-lg transform hover:scale-105;
+        }
+        .ui-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Game UI Panel -->
+    <div id="ui-panel" class="ui-panel hidden">
+        <p>Level: <span id="ui-level">1</span> / 10</p>
+        <p>Lives: <span id="ui-lives">3</span></p>
+        <p>Difficulty: <span id="ui-difficulty">Normal</span></p>
+        <p class="mt-2">Jumps: <span id="ui-jumps">2</span></p>
+    </div>
+
+    <!-- Main Menu Overlay (Updated for Level & Difficulty Selection) -->
+    <div id="main-menu" class="overlay">
+        <h1 class="text-6xl font-black text-white mb-8 tracking-wider">DODECA-JUMP</h1>
+        <p class="text-xl text-gray-300 mb-6">Master the geometry and conquer the levels!</p>
+
+        <!-- Level Selection -->
+        <h2 class="text-3xl text-yellow-300 mt-4 mb-3">Select Level</h2>
+        <div id="level-buttons" class="flex flex-wrap justify-center mb-6 max-w-4xl">
+            <!-- Level buttons will be inserted here by JavaScript -->
+        </div>
+
+        <!-- Difficulty Selection -->
+        <h2 class="text-3xl text-yellow-300 mt-4 mb-3">Select Difficulty</h2>
+        <div id="difficulty-buttons-new" class="flex flex-wrap justify-center mb-8">
+             <label class="p-3 m-1 bg-green-500 rounded-xl text-white cursor-pointer hover:bg-green-600 has-[:checked]:ring-4 ring-offset-2 ring-green-300">
+                <input type="radio" name="level-difficulty" value="normal" checked class="hidden"> Normal (4 Lives)
+            </label>
+            <label class="p-3 m-1 bg-blue-500 rounded-xl text-white cursor-pointer hover:bg-blue-600 has-[:checked]:ring-4 ring-offset-2 ring-blue-300">
+                <input type="radio" name="level-difficulty" value="challenge" class="hidden"> Challenge (2 Lives)
+            </label>
+            <label class="p-3 m-1 bg-red-500 rounded-xl text-white cursor-pointer hover:bg-red-600 has-[:checked]:ring-4 ring-offset-2 ring-red-300">
+                <input type="radio" name="level-difficulty" value="extreme" class="hidden"> Extreme (1 Life)
+            </label>
+        </div>
+        
+        <button onclick="startSelectedGame()" class="btn-fancy bg-purple-600 hover:bg-purple-700 text-white">Start Game</button>
+        <p class="text-xs text-gray-400 mt-4">User ID: <span id="user-id-display">Loading...</span></p>
+
+    </div>
+
+    <!-- Game Over / Win Overlay -->
+    <div id="game-over-menu" class="overlay hidden">
+        <h1 id="game-over-title" class="text-6xl font-black text-red-500 mb-4 tracking-wider">GAME OVER</h1>
+        <p id="game-over-message" class="text-2xl text-white mb-8">You ran out of lives. Try again!</p>
+        <button onclick="showMenu()" class="btn-fancy bg-gray-500 hover:bg-gray-600 text-white">Back to Main Menu</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // --- Firebase Variables ---
+        let db;
+        let auth;
+        let userId = null;
+        let completedLevels = {};
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Function to initialize Firebase and sign in
+        async function initializeFirebase() {
+            try {
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Sign in using provided token or anonymously
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Wait for auth state change to get the final userId
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-id-display').textContent = userId;
+                        console.log("Firebase initialized. User ID:", userId);
+                        startListeningForProgress();
+                    } else {
+                        // Fallback for unauthenticated state (shouldn't happen with the custom token flow)
+                        userId = crypto.randomUUID(); 
+                        document.getElementById('user-id-display').textContent = userId + " (Anon)";
+                        console.error("Failed to authenticate user. Using random ID.");
+                        startListeningForProgress();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                document.getElementById('user-id-display').textContent = "ERROR";
+            }
+        }
+
+        // Function to set up real-time listener for game progress
+        function startListeningForProgress() {
+            if (!db || !userId) return;
+
+            // Private collection path: /artifacts/{appId}/users/{userId}/game_progress
+            const progressRef = doc(db, 'artifacts', appId, 'users', userId, 'game_progress', 'status');
+
+            onSnapshot(progressRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    completedLevels = data.completedLevels || {};
+                    console.log("Game progress loaded:", completedLevels);
+                } else {
+                    console.log("No game progress found. Creating initial document.");
+                    // Initialize document if it doesn't exist
+                    completedLevels = {};
+                    setDoc(progressRef, { completedLevels: {} }, { merge: true }).catch(e => console.error("Error setting initial progress:", e));
+                }
+                // Always repopulate menu after loading/updating progress
+                populateLevelMenu();
+            }, (error) => {
+                console.error("Error listening to progress:", error);
+            });
+        }
+        
+        // Global Three.js and Cannon.js variables
+        let scene, camera, renderer;
+        let world;
+        let playerMesh, playerBody;
+        let keys = {};
+        
+        // --- Framerate Independence Variables ---
+        const FIXED_TIME_STEP = 1 / 60; // 60 updates per second
+        let lastTime = 0;
+        let accumulator = 0;
+
+        // --- Camera Control Variables ---
+        let cameraDistance = 10;
+        let theta = 90; // Horizontal angle (0 to 360)
+        let phi = 45;   // Vertical angle (clamped 1 to 89)
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const ROTATION_SPEED = 1.0; 
+        let currentCameraAngle = 0; // The angle used for player movement direction
+
+        // Game State Variables
+        let gameState = 'menu'; // 'menu', 'playing', 'gameover', 'win'
+        let currentLevel = 0;
+        let playerLives = 4; // Default to Normal lives
+        let difficulty = 'normal';
+        let enemySpeedMultiplier = 1;
+        let levelGravity = 20; // Dynamic gravity setting
+
+        // Physics and Movement Constants
+        const PLAYER_RADIUS = 0.5;
+        const PLAYER_DETAIL = 1; 
+        const MOVE_SPEED = 10;
+        const JUMP_VELOCITY = 18; 
+        
+        // DOUBLE JUMP ONLY
+        const MAX_JUMPS = 2; 
+        let jumpsRemaining = MAX_JUMPS;
+
+        // Flag set to true if player is currently in contact with a jumpable surface
+        let isPlatformContact = false; 
+
+        // World Objects
+        let levelMeshes = [];
+        let levelBodies = [];
+        let enemyMeshes = [];
+        let enemyBodies = [];
+        const ENEMY_SIZE = 0.7;
+
+        // --- Level Data Structure (10 Levels) ---
+        const levelData = [
+            // Level 1: Simple Jumps (Index 0)
+            {
+                name: "1: First Leap",
+                platforms: [
+                    // x, y, z, sizeX, sizeY, sizeZ
+                    [0, 0, 0, 30, 1, 30], // Ground
+                    [5, 2, 5, 5, 1, 5],
+                    [15, 4, 0, 8, 1, 5],
+                    [25, 6, 5, 5, 1, 5],
+                    [35, 8, 0, 10, 1, 10] // End Platform
+                ],
+                enemies: [
+                    [10, 5, 0], 
+                    [20, 7, 5] 
+                ],
+                spawn: [0, 1.5, 0],
+                target: [35, 9, 0]
+            },
+            // Level 2: Gaps and Depth (Index 1)
+            {
+                name: "2: Gaping Abyss",
+                platforms: [
+                    [0, 0, 0, 15, 1, 15],
+                    [10, 5, -15, 5, 1, 5],
+                    [20, 10, 0, 10, 1, 10],
+                    [35, 15, 0, 15, 1, 15] 
+                ],
+                enemies: [
+                    [5, 5, 0],
+                    [25, 12, 0],
+                    [10, 10, -15]
+                ],
+                spawn: [0, 1.5, 0],
+                target: [35, 16, 0]
+            },
+            // Level 3: Precision Jumps (Index 2)
+            {
+                name: "3: Precision Path",
+                platforms: [
+                    [-5, 0, 0, 5, 1, 5],
+                    [5, 2, 0, 3, 1, 3],
+                    [15, 4, 5, 3, 1, 3],
+                    [25, 6, 0, 3, 1, 3],
+                    [35, 8, 5, 3, 1, 3],
+                    [45, 10, 0, 5, 1, 5] 
+                ],
+                enemies: [
+                    [10, 2, 0],
+                    [20, 4, 5],
+                    [30, 6, 0],
+                    [40, 8, 5]
+                ],
+                spawn: [-5, 1.5, 0],
+                target: [45, 11, 0]
+            },
+            // Level 4: The Vertical Climb (Index 3)
+            {
+                name: "4: Vertical Climb",
+                platforms: [
+                    [0, 0, 0, 10, 1, 10], // Start
+                    [0, 4, 0, 5, 1, 5],
+                    [5, 8, 0, 5, 1, 5],
+                    [0, 12, 0, 5, 1, 5],
+                    [-5, 16, 0, 10, 1, 10] // End
+                ],
+                enemies: [
+                    [2, 6, 0]
+                ],
+                spawn: [0, 1.5, 0],
+                target: [-5, 17, 0]
+            },
+            // Level 5: Enemy Gauntlet (Index 4)
+            {
+                name: "5: Enemy Gauntlet",
+                platforms: [
+                    [0, 0, 0, 10, 1, 10], 
+                    [10, 3, 10, 3, 1, 3], 
+                    [20, 6, 0, 3, 1, 3], 
+                    [30, 9, 10, 3, 1, 3], 
+                    [40, 12, 0, 10, 1, 10] 
+                ],
+                enemies: [
+                    [5, 1.5, 0], 
+                    [15, 6, 5], 
+                    [25, 9, 5], 
+                    [35, 10, 0]
+                ],
+                spawn: [0, 1.5, 0],
+                target: [40, 13, 0]
+            },
+            // Level 6: Double-Tap Dive (Index 5)
+            {
+                name: "6: Double-Tap Dive",
+                platforms: [
+                    [0, 0, 0, 10, 1, 10], 
+                    [15, 5, 0, 5, 1, 5], 
+                    [30, 2, 0, 5, 1, 5], // Lower platform forcing a mid-air dive
+                    [45, 7, 0, 10, 1, 10] 
+                ],
+                enemies: [
+                    [25, 5, 0]
+                ],
+                spawn: [0, 1.5, 0],
+                target: [45, 8, 0]
+            },
+            // Level 7: Zig Zag Walls (Index 6)
+            {
+                name: "7: Zig Zag Walls",
+                platforms: [
+                    [0, 0, 0, 5, 1, 5], 
+                    [10, 5, 5, 3, 5, 3], // Tall wall 1
+                    [20, 10, -5, 3, 5, 3], // Tall wall 2
+                    [30, 15, 5, 5, 1, 5] // End
+                ],
+                enemies: [
+                    [15, 10, 0]
+                ],
+                spawn: [0, 1.5, 0],
+                target: [30, 16, 5]
+            },
+            // Level 8: Long Distance Leap (Index 7)
+            {
+                name: "8: Long Leap",
+                platforms: [
+                    [0, 0, 0, 10, 1, 10], 
+                    [25, 5, 0, 5, 1, 5], 
+                    [50, 10, 0, 10, 1, 10] // End platform far away
+                ],
+                enemies: [
+                    [15, 3, 5], 
+                    [40, 7, -5]
+                ],
+                spawn: [0, 1.5, 0],
+                target: [50, 11, 0]
+            },
+            // Level 9: The Tower of Foes (Index 8)
+            {
+                name: "9: Tower of Foes",
+                platforms: [
+                    [0, 0, 0, 8, 1, 8], 
+                    [0, 4, 0, 4, 1, 4], 
+                    [0, 8, 0, 4, 1, 4], 
+                    [0, 12, 0, 4, 1, 4], 
+                    [0, 16, 0, 8, 1, 8] // End
+                ],
+                enemies: [
+                    [2, 5, 2], 
+                    [-2, 9, -2], 
+                    [2, 13, 2]
+                ],
+                spawn: [0, 1.5, 0],
+                target: [0, 17, 0]
+            },
+            // Level 10: The Final Gauntlet (Index 9)
+            {
+                name: "10: Final Gauntlet",
+                platforms: [
+                    [0, 0, 0, 10, 1, 10], 
+                    [10, 3, 0, 3, 1, 3], 
+                    [20, 6, 5, 5, 1, 5], 
+                    [35, 9, 0, 3, 1, 3], 
+                    [45, 12, 5, 10, 1, 10]
+                ],
+                enemies: [
+                    [5, 4, 5], 
+                    [25, 7, 0], 
+                    [40, 10, 10],
+                    [15, 8, 0]
+                ],
+                spawn: [0, 1.5, 0],
+                target: [45, 13, 5]
+            }
+        ];
+
+        // --- Utility Functions ---
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function clearWorld() {
+            // Remove all physics bodies
+            levelBodies.forEach(body => world.removeBody(body));
+            enemyBodies.forEach(body => world.removeBody(body));
+            levelBodies = [];
+            enemyBodies = [];
+
+            // Remove all Three.js meshes
+            while(scene.children.length > 0){ 
+                scene.remove(scene.children[0]); 
+            }
+            levelMeshes = [];
+            enemyMeshes = [];
+            
+            // Re-add lights (player body is removed and recreated in createPlayer)
+            addLights(); 
+        }
+
+        // --- Core Setup ---
+
+        function init() {
+            // --- Setup Cannon.js World ---
+            world = new CANNON.World();
+            world.gravity.set(0, -levelGravity, 0); 
+            world.broadphase = new CANNON.NaiveBroadphase();
+
+            // --- Setup Three.js Scene, Camera, and Renderer ---
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x2d3748);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true; 
+            document.body.appendChild(renderer.domElement);
+
+            // --- Event Listeners ---
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('keydown', onKeyDown, false);
+            document.addEventListener('keyup', onKeyUp, false);
+            
+            // Camera control listeners (use pointer events for mouse and touch)
+            document.addEventListener('mousedown', onPointerDown, false);
+            document.addEventListener('touchstart', onPointerDown, false);
+            document.addEventListener('mousemove', onPointerMove, false);
+            document.addEventListener('touchmove', onPointerMove, false);
+            document.addEventListener('mouseup', onPointerUp, false);
+            document.addEventListener('touchend', onPointerUp, false);
+            
+            // Start the main menu
+            showMenu();
+            
+            // Initialize Firebase
+            initializeFirebase(); 
+        }
+
+        function addLights() {
+            const ambientLight = new THREE.AmbientLight(0x404040, 4);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+            directionalLight.position.set(5, 10, 7.5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
+        }
+
+        // --- Object Creation (same as before) ---
+        
+        function createGround(x, y, z, sizeX, sizeY, sizeZ) {
+            // Three.js Mesh
+            const geometry = new THREE.BoxGeometry(sizeX, sizeY, sizeZ);
+            const material = new THREE.MeshPhongMaterial({ color: 0x38a169 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+            levelMeshes.push(mesh);
+
+            // Cannon.js Body
+            const shape = new CANNON.Box(new CANNON.Vec3(sizeX / 2, sizeY / 2, sizeZ / 2));
+            const body = new CANNON.Body({ mass: 0, shape: shape });
+            body.position.set(x, y, z);
+            world.addBody(body);
+            levelBodies.push(body);
+        }
+
+        function createPlayer(spawnPos) {
+            // Remove existing player body if present
+            if (playerBody) world.removeBody(playerBody);
+            if (playerMesh) scene.remove(playerMesh);
+
+            // Three.js Dodecahedron Mesh
+            const geometry = new THREE.DodecahedronGeometry(PLAYER_RADIUS, PLAYER_DETAIL); 
+            const material = new THREE.MeshPhongMaterial({ color: 0xf6e05e, flatShading: true });
+            playerMesh = new THREE.Mesh(geometry, material);
+            playerMesh.castShadow = true;
+            scene.add(playerMesh);
+
+            // Cannon.js Sphere Body (Simpler physics for platforming)
+            const shape = new CANNON.Sphere(PLAYER_RADIUS);
+            playerBody = new CANNON.Body({ mass: 1, shape: shape });
+            playerBody.position.set(spawnPos[0], spawnPos[1], spawnPos[2]);
+            playerBody.linearDamping = 0.9; 
+            world.addBody(playerBody);
+
+            // Reset jump count on player creation
+            jumpsRemaining = MAX_JUMPS; 
+
+            // Player contact listener for stomp check and jump reset
+            playerBody.addEventListener('collide', checkPlayerCollision);
+        }
+        
+        function createEnemy(x, y, z) {
+            // Three.js Enemy Mesh (Cube)
+            const geometry = new THREE.BoxGeometry(ENEMY_SIZE, ENEMY_SIZE, ENEMY_SIZE);
+            const material = new THREE.MeshPhongMaterial({ color: 0xe53e3e });
+            const enemyMesh = new THREE.Mesh(geometry, material);
+            enemyMesh.castShadow = true;
+            scene.add(enemyMesh);
+            enemyMeshes.push(enemyMesh);
+
+            // Cannon.js Enemy Body
+            const shape = new CANNON.Box(new CANNON.Vec3(ENEMY_SIZE / 2, ENEMY_SIZE / 2, ENEMY_SIZE / 2));
+            const enemyBody = new CANNON.Body({ mass: 5, shape: shape });
+            enemyBody.position.set(x, y, z);
+            enemyBody.linearDamping = 0.9; 
+            world.addBody(enemyBody);
+            enemyBodies.push(enemyBody);
+        }
+        
+        function createTarget(x, y, z) {
+            // Target Mesh (Torus Knot)
+            const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+            const material = new THREE.MeshPhongMaterial({ color: 0x5a67d8 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            scene.add(mesh);
+            levelMeshes.push(mesh);
+            
+            // Simple trigger area (Invisible box body)
+            const shape = new CANNON.Box(new CANNON.Vec3(1.5, 1.5, 1.5));
+            const body = new CANNON.Body({ mass: 0, shape: shape });
+            body.position.set(x, y, z);
+            body.isTarget = true;
+            world.addBody(body);
+            levelBodies.push(body);
+        }
+
+        // --- Game Logic ---
+        
+        function checkWinCondition() {
+            const target = levelData[currentLevel].target;
+            const distanceSq = playerBody.position.distanceSquared(new CANNON.Vec3(target[0], target[1], target[2]));
+            
+            if (distanceSq < 5 * 5) { // If player is within 5 units of target
+                goToNextLevel();
+            }
+        }
+        
+        function checkLoseCondition() {
+            if (playerBody.position.y < -10) { // Fell off the world
+                playerLives--;
+                updateUI();
+                if (playerLives <= 0) {
+                    gameOver('lose');
+                } else {
+                    loadLevel(currentLevel); // Reload current level
+                }
+            }
+        }
+
+        // Consolidated Collision Handler (Wall Jump Enabled)
+        function checkPlayerCollision(event) {
+            const otherBody = event.body === playerBody ? event.target : event.body;
+            const normal = event.contact.ni; 
+            
+            // 1. GLOBAL JUMP RESET: Reset jumps remaining upon ANY collision with ANY object.
+            jumpsRemaining = MAX_JUMPS;
+            updateUI(); // Update jump count in UI
+            
+            // 2. Stabilization Check (Only needed for floor/platform contact)
+            if (normal.y > 0.7) { 
+                isPlatformContact = true;
+                // Zero out vertical velocity on reliable ground contact
+                playerBody.velocity.y = 0; 
+            } else {
+                isPlatformContact = false;
+            }
+            
+            // 3. Enemy Interaction Check
+            const enemyIndex = enemyBodies.indexOf(otherBody);
+            if (enemyIndex !== -1) {
+                
+                // STOMP LOGIC: Moving downwards AND hitting from above
+                if (playerBody.velocity.y < -1 && normal.y > 0.8) { 
+                    killEnemy(enemyIndex);
+                    // Give a small jump boost on stomp
+                    playerBody.velocity.y = 0; // Reset existing Y velocity
+                    playerBody.applyImpulse(new CANNON.Vec3(0, JUMP_VELOCITY * 0.75, 0), playerBody.position);
+                } else {
+                    // Damage Logic (Side/Bottom hit)
+                    playerLives--;
+                    updateUI();
+                    if (playerLives <= 0) {
+                        gameOver('lose');
+                    } else {
+                        // Knockback effect
+                        const direction = new CANNON.Vec3();
+                        playerBody.position.vsub(otherBody.position, direction);
+                        direction.normalize();
+                        playerBody.velocity.set(direction.x * 5, 5, direction.z * 5); // Push player back/up
+                        // Damage flash
+                        playerMesh.material.color.setHex(0xff0000);
+                        setTimeout(() => playerMesh.material.color.setHex(0xf6e05e), 200);
+                    }
+                }
+            } else if (otherBody.isTarget) {
+                // Check if collided with target (additional check for win)
+                checkWinCondition();
+            }
+        }
+        
+        function killEnemy(index) {
+            world.removeBody(enemyBodies[index]);
+            scene.remove(enemyMeshes[index]);
+            
+            // Remove from arrays
+            enemyBodies.splice(index, 1);
+            enemyMeshes.splice(index, 1);
+        }
+
+        // --- Level Management ---
+        
+        async function goToNextLevel() {
+            // --- Save Progress ---
+            if (userId && currentLevel < levelData.length) {
+                completedLevels[currentLevel.toString()] = true; // Mark current level (0-indexed) as complete
+                const progressRef = doc(db, 'artifacts', appId, 'users', userId, 'game_progress', 'status');
+                try {
+                    await setDoc(progressRef, { completedLevels: completedLevels }, { merge: true });
+                    console.log(`Progress saved: Level ${currentLevel + 1} completed.`);
+                } catch (e) {
+                    console.error("Error saving progress:", e);
+                }
+            }
+            // --- End Save Progress ---
+
+            currentLevel++;
+            if (currentLevel < levelData.length) {
+                loadLevel(currentLevel);
+            } else {
+                gameOver('win');
+            }
+        }
+
+        function loadLevel(index) {
+            clearWorld(); // Clear all geometry and physics
+            
+            const level = levelData[index];
+            
+            // Create Ground/Platforms
+            level.platforms.forEach(p => createGround(p[0], p[1], p[2], p[3], p[4], p[5]));
+            
+            // Create Enemies
+            level.enemies.forEach(e => createEnemy(e[0], e[1], e[2]));
+            
+            // Create Target
+            createTarget(level.target[0], level.target[1], level.target[2]);
+
+            // Create Player at spawn point
+            createPlayer(level.spawn);
+            
+            // Update UI
+            updateUI();
+        }
+        
+        function populateLevelMenu() {
+            const container = document.getElementById('level-buttons');
+            container.innerHTML = ''; // Clear existing buttons
+            
+            levelData.forEach((level, index) => {
+                const isChecked = index === 0;
+                const isCompleted = completedLevels[index.toString()]; // Check completion status
+                
+                const label = document.createElement('label');
+                label.className = `relative p-3 m-1 rounded-xl text-white cursor-pointer transition duration-150 shadow-md ${
+                    isCompleted 
+                        ? 'bg-green-600 hover:bg-green-700 has-[:checked]:bg-purple-500' 
+                        : 'bg-gray-700 hover:bg-gray-600 has-[:checked]:bg-purple-500'
+                }`;
+                
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = 'level';
+                input.value = index;
+                input.className = 'hidden';
+                if (isChecked) input.checked = true;
+                
+                label.appendChild(input);
+                
+                const textSpan = document.createElement('span');
+                textSpan.textContent = level.name;
+                label.appendChild(textSpan);
+                
+                // Add completion indicator
+                if (isCompleted) {
+                    const checkmark = document.createElement('span');
+                    checkmark.innerHTML = ' &nbsp;✅'; // Checkmark emoji
+                    checkmark.title = 'Level Completed';
+                    checkmark.className = 'text-sm font-bold ml-1';
+                    textSpan.appendChild(checkmark);
+                }
+
+                container.appendChild(label);
+            });
+        }
+
+        // --- Input and Movement ---
+
+        function onKeyDown(event) {
+            if (gameState !== 'playing') return;
+            keys[event.key.toLowerCase()] = true;
+        }
+
+        function onKeyUp(event) {
+            if (gameState !== 'playing') return;
+            
+            const key = event.key.toLowerCase();
+            keys[key] = false;
+            
+            // Crucial: Set a flag when jump key is released to enable the next jump.
+            if (key === ' ') {
+                keys.jumpReleased = true; 
+            }
+        }
+        
+        // --- Camera Control Handlers (Same as before) ---
+
+        function onPointerDown(event) {
+            if (gameState !== 'playing') return;
+            isDragging = true;
+            const clientX = event.clientX || (event.touches ? event.touches[0].clientX : event.clientX);
+            const clientY = event.clientY || (event.touches ? event.touches[0].clientY : event.clientY);
+
+            previousMousePosition.x = clientX;
+            previousMousePosition.y = clientY;
+            
+            event.preventDefault(); 
+        }
+
+        function onPointerMove(event) {
+            if (gameState !== 'playing' || !isDragging) return;
+
+            const clientX = event.clientX || (event.touches ? event.touches[0].clientX : event.clientX);
+            const clientY = event.clientY || (event.touches ? event.touches[0].clientY : event.clientY);
+
+            const deltaX = clientX - previousMousePosition.x;
+            const deltaY = clientY - previousMousePosition.y;
+
+            theta += deltaX * ROTATION_SPEED * 0.1; 
+            phi -= deltaY * ROTATION_SPEED * 0.1; 
+
+            phi = Math.max(1, Math.min(89, phi));
+
+            previousMousePosition.x = clientX;
+            previousMousePosition.y = clientY;
+            
+            event.preventDefault();
+        }
+
+        function onPointerUp() {
+            isDragging = false;
+        }
+        
+        function handlePlayerMovement() {
+            if (!playerBody) return; 
+
+            // --- Directional Movement (Camera-Relative) ---
+            let moveX = 0;
+            let moveZ = 0;
+            const speed = MOVE_SPEED;
+
+            const angle = currentCameraAngle + (Math.PI / 2); 
+
+            const forwardX = Math.cos(angle);
+            const forwardZ = Math.sin(angle);
+            
+            const rightX = Math.cos(angle + Math.PI / 2);
+            const rightZ = Math.sin(angle + Math.PI / 2);
+
+            if (keys['w'] || keys['arrowup']) {
+                moveX += forwardX;
+                moveZ += forwardZ;
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                moveX -= forwardX;
+                moveZ -= forwardZ;
+            }
+            if (keys['a'] || keys['arrowleft']) { 
+                moveX -= rightX;
+                moveZ -= rightZ;
+            }
+            if (keys['d'] || keys['arrowright']) { 
+                moveX += rightX;
+                moveZ += rightZ;
+            }
+            
+            // Apply horizontal velocity
+            const mag = Math.sqrt(moveX * moveX + moveZ * moveZ);
+            if (mag > 0.1) {
+                playerBody.velocity.x = (moveX / mag) * speed;
+                playerBody.velocity.z = (moveZ / mag) * speed;
+            } else {
+                // Apply slight damping when no input
+                playerBody.velocity.x *= 0.8;
+                playerBody.velocity.z *= 0.8;
+            }
+            
+            // --- JUMP LOGIC (Max Jumps = 2) ---
+            if (keys[' '] && jumpsRemaining > 0 && keys.jumpReleased) {
+                
+                // If it's an air jump, reset Y velocity to cancel current fall speed.
+                if (jumpsRemaining < MAX_JUMPS) {
+                    playerBody.velocity.y = 0; 
+                }
+                
+                // Apply jump velocity and consume a jump
+                playerBody.velocity.y += JUMP_VELOCITY; 
+                jumpsRemaining--; 
+                
+                keys.jumpReleased = false; 
+                updateUI(); // Update jump count in UI
+            }
+        }
+        
+        function handleEnemyAI() {
+            if (!playerBody) return; 
+
+            const enemyMovementRange = 20; 
+            enemyBodies.forEach((enemyBody) => {
+                // Simple check if enemy is not falling too fast
+                if (enemyBody.velocity.y < 5) { 
+                    // Simple chasing AI
+                    const directionX = playerBody.position.x - enemyBody.position.x;
+                    const directionZ = playerBody.position.z - enemyBody.position.z;
+
+                    let speed = 2 * enemySpeedMultiplier; 
+                    
+                    if (Math.abs(directionX) < enemyMovementRange || Math.abs(directionZ) < enemyMovementRange) {
+                        enemyBody.velocity.x = Math.sign(directionX) * speed;
+                        enemyBody.velocity.z = Math.sign(directionZ) * speed;
+                    } else {
+                        // Stop if player is too far
+                        enemyBody.velocity.x *= 0.9;
+                        enemyBody.velocity.z *= 0.9;
+                    }
+                }
+            });
+        }
+
+
+        // --- UI & State Functions ---
+
+        function updateUI() {
+            document.getElementById('ui-level').textContent = currentLevel + 1;
+            document.getElementById('ui-lives').textContent = playerLives;
+            document.getElementById('ui-difficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+            document.getElementById('ui-jumps').textContent = jumpsRemaining;
+        }
+        
+        function showMenu() {
+            gameState = 'menu';
+            document.getElementById('main-menu').classList.remove('hidden');
+            document.getElementById('game-over-menu').classList.add('hidden');
+            document.getElementById('ui-panel').classList.add('hidden');
+            // Repopulate menu to show any newly completed levels
+            populateLevelMenu(); 
+        }
+
+        // Expose the function globally so the HTML onclick attribute can access it
+        window.showMenu = showMenu;
+
+
+        function startSelectedGame() {
+            const selectedLevelEl = document.querySelector('input[name="level"]:checked');
+            const selectedDifficultyEl = document.querySelector('input[name="level-difficulty"]:checked');
+            
+            if (!selectedLevelEl || !selectedDifficultyEl) return;
+
+            currentLevel = parseInt(selectedLevelEl.value);
+            difficulty = selectedDifficultyEl.value;
+
+            // Set difficulty parameters
+            if (difficulty === 'normal') {
+                playerLives = 4;
+                enemySpeedMultiplier = 1.0;
+                levelGravity = 20;
+            } else if (difficulty === 'challenge') {
+                playerLives = 2; 
+                enemySpeedMultiplier = 1.5;
+                levelGravity = 25; 
+            } else if (difficulty === 'extreme') {
+                playerLives = 1; 
+                enemySpeedMultiplier = 2.0;
+                levelGravity = 30; 
+            }
+            
+            // Set the world gravity dynamically
+            world.gravity.set(0, -levelGravity, 0);
+
+            gameState = 'playing';
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('ui-panel').classList.remove('hidden');
+            
+            loadLevel(currentLevel);
+        }
+
+        // Expose the function globally so the HTML onclick attribute can access it
+        window.startSelectedGame = startSelectedGame;
+        
+        function gameOver(type) {
+            gameState = 'gameover';
+            document.getElementById('game-over-menu').classList.remove('hidden');
+            document.getElementById('ui-panel').classList.add('hidden');
+            
+            if (type === 'win') {
+                document.getElementById('game-over-title').textContent = "YOU WIN!";
+                document.getElementById('game-over-title').classList.remove('text-red-500');
+                document.getElementById('game-over-title').classList.add('text-green-500');
+                document.getElementById('game-over-message').textContent = "You mastered all 10 levels on " + difficulty.toUpperCase() + " difficulty!";
+            } else {
+                document.getElementById('game-over-title').textContent = "GAME OVER";
+                document.getElementById('game-over-title').classList.remove('text-green-500');
+                document.getElementById('game-over-title').classList.add('text-red-500');
+                document.getElementById('game-over-message').textContent = "You ran out of lives. Better luck next time!";
+            }
+        }
+
+
+        // --- Animation Loop (Framerate Independent) ---
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+
+            if (lastTime === 0) {
+                lastTime = time;
+            }
+
+            const deltaTime = (time - lastTime) / 1000;
+            lastTime = time;
+
+            if (gameState === 'playing') {
+                accumulator += deltaTime;
+                
+                // Run physics and game logic using fixed steps
+                while (accumulator >= FIXED_TIME_STEP) {
+                    
+                    // 1. Update Physics World (This triggers 'collide', which resets jumps)
+                    world.step(FIXED_TIME_STEP); 
+                    
+                    // 2. Update Game Logic
+                    handlePlayerMovement();
+                    handleEnemyAI();
+                    checkLoseCondition();
+                    
+                    accumulator -= FIXED_TIME_STEP;
+                }
+
+                // 3. Sync Three.js Meshes with Cannon.js Bodies (Visual update)
+                if (playerMesh && playerBody) {
+                    playerMesh.position.copy(playerBody.position);
+                    playerMesh.quaternion.copy(playerBody.quaternion);
+                }
+
+                for (let i = 0; i < enemyMeshes.length; i++) {
+                    enemyMeshes[i].position.copy(enemyBodies[i].position);
+                    enemyMeshes[i].quaternion.copy(enemyBodies[i].quaternion);
+                }
+
+                // 4. Update Camera Position (Orbit Controls)
+                if (playerBody) {
+                    const playerPos = playerMesh.position;
+
+                    const radTheta = theta * (Math.PI / 180);
+                    const radPhi = phi * (Math.PI / 180);
+
+                    currentCameraAngle = radTheta + (Math.PI / 2); 
+
+                    const x = playerPos.x + cameraDistance * Math.sin(radPhi) * Math.cos(radTheta);
+                    const y = playerPos.y + cameraDistance * Math.cos(radPhi);
+                    const z = playerPos.z + cameraDistance * Math.sin(radPhi) * Math.sin(radTheta);
+                    
+                    camera.position.set(x, y, z);
+                    camera.lookAt(playerPos);
+                }
+            }
+
+            // 5. Render Scene
+            renderer.render(scene, camera);
+        }
+
+        // Start everything when the window loads
+        window.onload = function () {
+            init();
+            animate();
+        };
+    </script>
+</body>
+</html>
