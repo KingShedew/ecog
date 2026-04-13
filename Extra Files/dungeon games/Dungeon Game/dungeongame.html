@@ -1,0 +1,1314 @@
+<!doctype html><html><head></head><body><!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-900">
+
+<!-- This is a file by the Elite Composite Of Games-->
+<!-- All rights go to the owner of this game. -->
+<!-- For ECOG go to https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
+
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>The Malleable Maze (Expanded Arsenal)</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+	<style>
+		body {
+			font-family: 'Inter', sans-serif;
+		}
+
+		canvas {
+			background-color: #0c101b;
+			/* Dark background for the dungeon */
+			border: 2px solid #374151;
+			display: block;
+			cursor: crosshair;
+			/* Indicate click-to-fire */
+		}
+
+		/* Style for buttons and modals */
+		.btn-primary {
+			@apply bg-indigo-600 hover: bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-150;
+		}
+
+		.btn-danger {
+			@apply bg-red-600 hover: bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-150;
+		}
+
+		.modal-overlay {
+			@apply fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50;
+		}
+
+		/* Standard modal size (used for Start/Game Over screens) */
+		.modal-content {
+			@apply bg-gray-800 p-8 rounded-xl shadow-2xl max-w-lg w-full text-white;
+		}
+
+		/* Custom scrollbar for shop/inventory */
+		.custom-scrollbar::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		.custom-scrollbar::-webkit-scrollbar-track {
+			background: #1f2937;
+			border-radius: 4px;
+		}
+
+		.custom-scrollbar::-webkit-scrollbar-thumb {
+			background: #4b5563;
+			border-radius: 4px;
+		}
+
+		.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+			background: #6b7280;
+		}
+	</style>
+</head>
+
+<body class="h-full flex items-center justify-center p-4">
+
+	<!-- Game Container -->
+	<div class="flex flex-col items-center bg-gray-800 p-6 rounded-xl shadow-2xl max-w-4xl w-full">
+		<h1 class="text-3xl font-extrabold text-indigo-400 mb-4">The Malleable Maze</h1>
+
+		<!-- Canvas for the Game -->
+		<canvas id="gameCanvas" width="800" height="600" class="rounded-lg mb-4"></canvas>
+
+		<!-- HUD/Controls Panel -->
+		<div id="hud-panel" class="w-full grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+
+			<!-- Spell/Skill Slot -->
+			<div class="bg-gray-900 p-3 rounded-lg shadow-inner flex flex-col items-center col-span-1">
+				<p class="text-sm font-semibold text-indigo-300 mb-1">Current Spell</p>
+				<div id="current-spell-display" class="text-xl font-bold text-white">Fireball</div>
+				<div class="flex space-x-2 mt-2">
+					<button id="toggle-spell-btn" class="btn-primary py-1 px-2 text-sm">Next Spell (Q/F)</button>
+					<button id="cast-spell-btn" class="btn-danger py-1 px-2 text-sm">Cast (E)</button>
+				</div>
+			</div>
+
+			<!-- Stats Display -->
+			<div class="bg-gray-900 p-3 rounded-lg shadow-inner col-span-2 flex justify-around">
+				<div class="text-center">
+					<p class="text-sm font-semibold text-red-400">Health</p>
+					<div id="health-display" class="text-xl font-bold text-white">100</div>
+				</div>
+				<div class="text-center">
+					<p class="text-sm font-semibold text-blue-400">Mana</p>
+					<div id="mana-display" class="text-xl font-bold text-white">50</div>
+				</div>
+				<div class="text-center">
+					<p class="text-sm font-semibold text-yellow-400">Gold</p>
+					<div id="gold-display" class="text-xl font-bold text-white">0</div>
+				</div>
+				<div class="text-center">
+					<p class="text-sm font-semibold text-green-400">Wave</p>
+					<div id="wave-display" class="text-xl font-bold text-white">0</div>
+				</div>
+			</div>
+
+			<!-- Action Button -->
+			<div class="bg-gray-900 p-3 rounded-lg shadow-inner flex items-center justify-center col-span-1">
+				<button id="shop-btn" class="btn-primary w-full text-lg">Open Shop (Tab)</button>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- Start Screen Modal (Uses standard modal-content size) -->
+	<div id="start-screen" class="modal-overlay">
+		<div class="modal-content text-center">
+			<h2 class="text-4xl font-extrabold mb-4 text-indigo-400">Welcome to the Maze</h2>
+			<p class="mb-6 text-gray-300">Defeat waves of enemies using your expanded arsenal of spells!</p>
+			<ul class="list-disc list-inside text-left mx-auto max-w-xs mb-6 text-gray-400">
+				<li>**Move:** WASD or Arrow Keys</li>
+				<li>**Aim/Fire:** Mouse Move / Left Click</li>
+				<li>**Cast Spell:** E</li>
+				<li>**Toggle Spell:** Q or F or Click HUD Button</li>
+				<li>**Shop:** Tab or Click Shop Button</li>
+			</ul>
+			<button id="start-game-btn" class="btn-primary text-xl px-8 py-3">Start Game</button>
+		</div>
+	</div>
+
+	<!-- Game Over Modal (Uses standard modal-content size) -->
+	<div id="game-over-screen" class="modal-overlay hidden">
+		<div class="modal-content text-center">
+			<h2 class="text-4xl font-extrabold mb-4 text-red-400">Game Over!</h2>
+			<p id="final-score" class="text-2xl mb-6 text-white">You survived 0 waves.</p>
+			<button id="restart-game-btn" class="btn-primary text-xl px-8 py-3">Play Again</button>
+		</div>
+	</div>
+
+	<!-- Shop Modal (Custom, full-screen size) -->
+	<div id="shop-modal" class="modal-overlay hidden">
+		<!-- The modal is now much larger, filling most of the screen -->
+		<div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-11/12 h-5/6 max-w-7xl text-white flex flex-col">
+			<h2 class="text-3xl font-bold mb-4 text-yellow-400">The Mage's Emporium</h2>
+			<p class="text-gray-400 mb-4">Current Gold:
+				<span id="shop-gold-display" class="font-bold text-yellow-300">0</span></p>
+
+			<!-- flex-grow allows this content grid to fill the remaining height -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
+
+				<!-- Upgrades Section -->
+				<div class="bg-gray-900 p-4 rounded-lg custom-scrollbar overflow-y-auto">
+					<h3 class="text-xl font-semibold mb-3 text-indigo-300">Permanent Upgrades</h3>
+					<div id="upgrade-list" class="space-y-3">
+						<!-- Upgrade items will be injected here -->
+					</div>
+				</div>
+
+				<!-- Spells/Potions Section -->
+				<div class="bg-gray-900 p-4 rounded-lg custom-scrollbar overflow-y-auto">
+					<h3 class="text-xl font-semibold mb-3 text-blue-300">Spells & Consumables</h3>
+					<div id="spell-list" class="space-y-3">
+						<!-- Spell items will be injected here -->
+					</div>
+				</div>
+			</div>
+
+			<button id="close-shop-btn" class="btn-primary mt-6 float-right">Close Shop (Tab)</button>
+		</div>
+	</div>
+
+
+	<script>
+		// Wrap the entire script in an IIFE to contain variable scope and prevent global conflicts.
+        (function() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            // These variables are now scoped correctly within the IIFE.
+            const W = canvas.width;
+            const H = canvas.height;
+
+            // --- GAME STATE ---
+            let gameState = {
+                screen: 'start', // 'start', 'game', 'shop', 'gameover'
+                lastUpdateTime: 0,
+                
+                player: {
+                    x: W / 2,
+                    y: H / 2,
+                    radius: 15,
+                    color: '#34d399',
+                    speed: 180, // pixels per second
+                    health: 100,
+                    maxHealth: 100,
+                    mana: 50,
+                    maxMana: 50,
+                    manaRegenRate: 5, // mana per second
+                    attackCooldown: 0.3, // seconds
+                    lastAttackTime: 0,
+                    mouseX: W / 2,
+                    mouseY: H / 2,
+                    angle: 0, // angle towards mouse
+                    gold: 0,
+                    
+                    // Weapon/Arsenal stats
+                    weapon: {
+                        damage: 10,
+                        bulletSpeed: 500,
+                        fireRate: 0.2, // seconds between shots
+                        cooldownTimer: 0,
+                    },
+                    
+                    // Spell arsenal
+                    knownSpells: ['Fireball', 'Ice Shard', 'Lightning Bolt'],
+                    activeSpellIndex: 0,
+                },
+
+                projectiles: [],
+                enemies: [],
+                particles: [],
+                
+                // Environment/World
+                wave: 0,
+                isWaveActive: false,
+                enemySpawnRate: 3.0, // seconds between enemy spawns (decreases with wave)
+                lastSpawnTime: 0,
+                enemiesRemainingInWave: 0,
+                totalEnemiesForWave: 0,
+
+                // Input Handling
+                keys: {
+                    arrowup: false, arrowdown: false, arrowleft: false, arrowright: false,
+                    w: false, a: false, s: false, d: false
+                },
+            };
+
+            // --- CONFIG & DATA ---
+            
+            const ENEMY_CONFIG = {
+                'Basic Slime': {
+                    color: '#10b981',
+                    radius: 12,
+                    health: 30,
+                    speed: 100,
+                    damage: 5,
+                    gold: 5,
+                },
+                'Fast Zombie': {
+                    color: '#ef4444',
+                    radius: 10,
+                    health: 20,
+                    speed: 180,
+                    damage: 10,
+                    gold: 8,
+                },
+                'Tank Golem': {
+                    color: '#f97316',
+                    radius: 20,
+                    health: 150,
+                    speed: 60,
+                    damage: 15,
+                    gold: 20,
+                }
+            };
+
+            const SPELL_CONFIG = {
+                'Fireball': {
+                    manaCost: 15,
+                    cooldown: 5.0,
+                    damage: 50,
+                    radius: 10,
+                    speed: 350,
+                    color: '#f87171',
+                    effect: 'AOE Burn',
+                    cast: castFireball,
+                },
+                'Ice Shard': {
+                    manaCost: 25,
+                    cooldown: 7.0,
+                    damage: 30,
+                    radius: 5,
+                    speed: 800,
+                    color: '#60a5fa',
+                    effect: 'Pierce/Slow',
+                    cast: castIceShard,
+                },
+                'Lightning Bolt': {
+                    manaCost: 40,
+                    cooldown: 10.0,
+                    damage: 80,
+                    radius: 2,
+                    speed: 1000,
+                    color: '#fcd34d',
+                    effect: 'Chain',
+                    cast: castLightningBolt,
+                }
+            };
+
+            const UPGRADES = [
+                { id: 'maxHealth', name: 'Max Health', description: 'Increases max HP by 25.', cost: 50, effect: () => { gameState.player.maxHealth += 25; gameState.player.health += 25; } },
+                { id: 'manaRegen', name: 'Mana Regeneration', description: 'Increases mana regen rate by 1.5/s.', cost: 75, effect: () => { gameState.player.manaRegenRate += 1.5; } },
+                { id: 'playerSpeed', name: 'Movement Speed', description: 'Increases player speed by 40.', cost: 100, effect: () => { gameState.player.speed += 40; } },
+                { id: 'weaponDamage', name: 'Weapon Damage', description: 'Increases base weapon damage by 5.', cost: 60, effect: () => { gameState.player.weapon.damage += 5; } },
+            ];
+
+
+            // --- CORE GAME LOOP & DRAWING ---
+
+            function gameLoop(timestamp) {
+                const deltaTime = (timestamp - gameState.lastUpdateTime) / 1000;
+                gameState.lastUpdateTime = timestamp;
+
+                if (gameState.screen === 'game') {
+                    update(deltaTime);
+                    draw();
+                } else if (gameState.screen === 'start' || gameState.screen === 'gameover' || gameState.screen === 'shop') {
+                    draw(); // Draw static screen
+                }
+
+                requestAnimationFrame(gameLoop);
+            }
+
+            function update(deltaTime) {
+                // 1. Update Player & Stats
+                updatePlayer(deltaTime);
+                
+                // 2. Wave Management
+                if (gameState.isWaveActive) {
+                    spawnEnemies(deltaTime);
+                } else if (gameState.enemies.length === 0 && gameState.projectiles.length === 0) {
+                    // Wave is clear, start next one
+                    startNextWave();
+                }
+
+                // 3. Update Entities
+                updateProjectiles(deltaTime);
+                updateEnemies(deltaTime);
+                updateParticles(deltaTime);
+
+                // 4. Collision Detection (Projectiles & Enemies)
+                handleCollisions();
+                
+                // 5. Check Game Over
+                if (gameState.player.health <= 0) {
+                    endGame();
+                }
+                
+                // 6. Update HUD
+                updateHUD();
+            }
+
+            function draw() {
+                // Clear canvas
+                ctx.fillStyle = '#0c101b';
+                ctx.fillRect(0, 0, W, H);
+
+                if (gameState.screen === 'game' || gameState.screen === 'shop') {
+                    // Draw entities
+                    drawParticles();
+                    drawProjectiles();
+                    drawEnemies();
+                    drawPlayer();
+                    drawHUDOnCanvas(); // Draw crosshair, player stats overlay
+                } else if (gameState.screen === 'start') {
+                    drawStartScreen();
+                } else if (gameState.screen === 'gameover') {
+                    drawGameOverScreen();
+                }
+            }
+            
+            // --- DRAWING IMPLEMENTATIONS ---
+
+            function drawPlayer() {
+                const p = gameState.player;
+                
+                // 1. Draw Player Circle
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                
+                // Draw circle body
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 2. Draw Weapon/Casting Arm (points to mouse)
+                // Calculate angle to mouse
+                const dx = p.mouseX - p.x;
+                const dy = p.mouseY - p.y;
+                p.angle = Math.atan2(dy, dx);
+                
+                ctx.rotate(p.angle);
+                
+                // Draw a rectangle arm/staff
+                ctx.fillStyle = '#fef3c7'; // Light yellow for weapon
+                ctx.fillRect(p.radius, -3, 25, 6); 
+                
+                ctx.restore();
+                
+                // Draw Health and Mana bars above the player
+                const barWidth = 40;
+                const barHeight = 4;
+                
+                // Health Bar (Red)
+                ctx.fillStyle = '#6b7280'; // Background
+                ctx.fillRect(p.x - barWidth / 2, p.y - p.radius - 12, barWidth, barHeight);
+                ctx.fillStyle = '#ef4444'; // Fill
+                const healthFill = (p.health / p.maxHealth) * barWidth;
+                ctx.fillRect(p.x - barWidth / 2, p.y - p.radius - 12, healthFill, barHeight);
+                
+                // Mana Bar (Blue)
+                ctx.fillStyle = '#6b7280'; // Background
+                ctx.fillRect(p.x - barWidth / 2, p.y - p.radius - 7, barWidth, barHeight);
+                ctx.fillStyle = '#3b82f6'; // Fill
+                const manaFill = (p.mana / p.maxMana) * barWidth;
+                ctx.fillRect(p.x - barWidth / 2, p.y - p.radius - 7, manaFill, barHeight);
+            }
+
+            function drawEnemies() {
+                gameState.enemies.forEach(e => {
+                    ctx.fillStyle = e.color;
+                    ctx.beginPath();
+                    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw health bar for enemies
+                    const barWidth = 30;
+                    const barHeight = 3;
+                    
+                    ctx.fillStyle = '#6b7280'; // Background
+                    ctx.fillRect(e.x - barWidth / 2, e.y - e.radius - 8, barWidth, barHeight);
+                    ctx.fillStyle = '#ef4444'; // Fill
+                    const healthFill = (e.health / e.maxHealth) * barWidth;
+                    ctx.fillRect(e.x - barWidth / 2, e.y - e.radius - 8, healthFill, barHeight);
+                });
+            }
+
+            function drawProjectiles() {
+                gameState.projectiles.forEach(p => {
+                    if (p.type === 'bullet') {
+                        // Standard Bullet: small circle
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        // Spell Projectiles: can be more visually complex
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Add a small glowing effect for spells
+                        ctx.globalAlpha = 0.5;
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = p.color;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius * 1.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                        ctx.globalAlpha = 1.0;
+                    }
+                });
+            }
+            
+            function drawParticles() {
+                gameState.particles.forEach(p => {
+                    if (p.isText) {
+                        ctx.font = '14px Inter';
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = p.alpha;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(p.text, p.x, p.y);
+                    } else {
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = p.alpha;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+                ctx.globalAlpha = 1.0; // Reset alpha
+            }
+
+            function drawHUDOnCanvas() {
+                // Draw Crosshair at mouse position
+                ctx.strokeStyle = '#fef3c7'; // Light color
+                ctx.lineWidth = 1;
+                
+                // Vertical line
+                ctx.beginPath();
+                ctx.moveTo(gameState.player.mouseX, gameState.player.mouseY - 8);
+                ctx.lineTo(gameState.player.mouseX, gameState.player.mouseY - 2);
+                ctx.moveTo(gameState.player.mouseX, gameState.player.mouseY + 2);
+                ctx.lineTo(gameState.player.mouseX, gameState.player.mouseY + 8);
+                ctx.stroke();
+                
+                // Horizontal line
+                ctx.beginPath();
+                ctx.moveTo(gameState.player.mouseX - 8, gameState.player.mouseY);
+                ctx.lineTo(gameState.player.mouseX - 2, gameState.player.mouseY);
+                ctx.moveTo(gameState.player.mouseX + 2, gameState.player.mouseY);
+                ctx.lineTo(gameState.player.mouseX + 8, gameState.player.mouseY);
+                ctx.stroke();
+            }
+            
+            function drawStartScreen() {
+                // The modal handles the start screen, so this is just a dark canvas
+                ctx.fillStyle = '#0c101b';
+                ctx.fillRect(0, 0, W, H);
+            }
+            
+            function drawGameOverScreen() {
+                // The modal handles the game over screen, so this is just a dark canvas with text
+                ctx.fillStyle = 'rgba(12, 16, 27, 0.9)';
+                ctx.fillRect(0, 0, W, H);
+                
+                ctx.font = '48px Inter';
+                ctx.fillStyle = '#ef4444';
+                ctx.textAlign = 'center';
+                ctx.fillText('Game Over', W / 2, H / 2 - 40);
+                
+                ctx.font = '24px Inter';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(`Waves Survived: ${gameState.wave}`, W / 2, H / 2 + 20);
+            }
+
+            // --- UPDATE IMPLEMENTATIONS ---
+
+            function updatePlayer(deltaTime) {
+                const p = gameState.player;
+                let dx = 0;
+                let dy = 0;
+
+                // Movement input
+                if (p.health > 0) {
+                    if (gameState.keys.w || gameState.keys.arrowup) dy -= 1;
+                    if (gameState.keys.s || gameState.keys.arrowdown) dy += 1;
+                    if (gameState.keys.a || gameState.keys.arrowleft) dx -= 1;
+                    if (gameState.keys.d || gameState.keys.arrowright) dx += 1;
+                }
+
+                // Normalize vector if moving diagonally
+                if (dx !== 0 && dy !== 0) {
+                    const magnitude = Math.sqrt(dx * dx + dy * dy);
+                    dx /= magnitude;
+                    dy /= magnitude;
+                }
+
+                // Apply movement
+                p.x += dx * p.speed * deltaTime;
+                p.y += dy * p.speed * deltaTime;
+
+                // Keep player within bounds
+                p.x = Math.max(p.radius, Math.min(W - p.radius, p.x));
+                p.y = Math.max(p.radius, Math.min(H - p.radius, p.y));
+                
+                // Regenerate Mana (capped at maxMana)
+                p.mana = Math.min(p.maxMana, p.mana + p.manaRegenRate * deltaTime);
+                
+                // Update weapon cooldown
+                if (p.weapon.cooldownTimer > 0) {
+                    p.weapon.cooldownTimer = Math.max(0, p.weapon.cooldownTimer - deltaTime);
+                }
+            }
+
+            function updateProjectiles(deltaTime) {
+                gameState.projectiles = gameState.projectiles.filter(p => {
+                    p.x += p.vx * deltaTime;
+                    p.y += p.vy * deltaTime;
+                    p.life -= deltaTime;
+                    
+                    // Remove if out of bounds or life is over
+                    return p.x > 0 && p.x < W && p.y > 0 && p.y < H && p.life > 0;
+                });
+            }
+
+            function updateEnemies(deltaTime) {
+                const p = gameState.player;
+                
+                gameState.enemies.forEach(e => {
+                    // Calculate vector to player
+                    const dx = p.x - e.x;
+                    const dy = p.y - e.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Move towards player
+                    if (dist > 0) {
+                        const vx = (dx / dist) * e.speed * deltaTime;
+                        const vy = (dy / dist) * e.speed * deltaTime;
+                        e.x += vx;
+                        e.y += vy;
+                    }
+                    
+                    // Apply Slow effect if present
+                    if (e.slowDuration > 0) {
+                        e.slowDuration = Math.max(0, e.slowDuration - deltaTime);
+                        // Slow effect: reduced speed
+                        e.speed = ENEMY_CONFIG[e.name].speed * 0.5;
+                    } else {
+                        e.speed = ENEMY_CONFIG[e.name].speed; // Reset speed
+                    }
+                });
+                
+                // Check for enemy-player collision (damage)
+                gameState.enemies = gameState.enemies.filter(e => {
+                    const dx = p.x - e.x;
+                    const dy = p.y - e.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < p.radius + e.radius) {
+                        // Collision detected
+                        if (e.lastAttackTime + e.attackCooldown < gameState.lastUpdateTime / 1000) {
+                            p.health -= e.damage;
+                            e.lastAttackTime = gameState.lastUpdateTime / 1000;
+                            createDamageParticles(p.x, p.y, e.damage, '#ef4444');
+                            // Push enemy back slightly
+                            const angle = Math.atan2(dy, dx);
+                            e.x -= Math.cos(angle) * 10;
+                            e.y -= Math.sin(angle) * 10;
+                        }
+                        return true; // Keep the enemy for continued damage
+                    }
+                    return true;
+                });
+            }
+            
+            function updateParticles(deltaTime) {
+                gameState.particles = gameState.particles.filter(p => {
+                    p.x += p.vx * deltaTime;
+                    p.y += p.vy * deltaTime;
+                    p.alpha -= p.fadeRate * deltaTime;
+                    
+                    if (!p.isText) {
+                         p.radius -= 5 * deltaTime; // Shrink slightly for visual particles
+                    }
+                   
+                    return p.alpha > 0 && (p.isText || p.radius > 0);
+                });
+            }
+
+            // --- COLLISION LOGIC ---
+
+            function handleCollisions() {
+                const newProjectiles = [];
+                const enemiesHitThisFrame = new Set();
+                
+                gameState.projectiles.forEach(p => {
+                    let hitEnemy = false;
+                    
+                    gameState.enemies.forEach(e => {
+                        const dx = e.x - p.x;
+                        const dy = e.y - p.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist < e.radius + p.radius) {
+                            // Collision!
+                            if (enemiesHitThisFrame.has(e)) return; // Already hit by this projectile
+
+                            e.health -= p.damage;
+                            enemiesHitThisFrame.add(e);
+                            
+                            createDamageParticles(e.x, e.y, p.damage, p.color);
+
+                            // Apply spell-specific effects
+                            if (p.effect === 'AOE Burn') {
+                                applyAoeBurn(e.x, e.y, 75, 20); // Radius 75, 20 damage AOE
+                            } else if (p.effect === 'Pierce/Slow') {
+                                e.slowDuration = 2.0; // Slow for 2 seconds
+                                p.life += 10; // Keep projectile for piercing
+                            } else if (p.effect === 'Chain') {
+                                // Lightning Bolt chains to the nearest un-chained enemy
+                                chainLightning(e, p.damage);
+                            }
+                            
+                            // Destroy projectile if it's not piercing (Ice Shard)
+                            if (p.effect !== 'Pierce/Slow') {
+                                hitEnemy = true;
+                            }
+
+                            // Check for enemy death
+                            if (e.health <= 0) {
+                                killEnemy(e);
+                            }
+                        }
+                    });
+                    
+                    if (!hitEnemy) {
+                        newProjectiles.push(p);
+                    }
+                });
+                
+                gameState.projectiles = newProjectiles;
+            }
+
+            // --- WAVE & SPAWNING LOGIC ---
+
+            function startNextWave() {
+                gameState.wave++;
+                gameState.isWaveActive = true;
+                gameState.totalEnemiesForWave = 5 + gameState.wave * 3;
+                gameState.enemiesRemainingInWave = gameState.totalEnemiesForWave;
+                
+                // Adjust difficulty based on wave
+                gameState.enemySpawnRate = Math.max(0.5, 3.0 - gameState.wave * 0.1);
+            }
+
+            function spawnEnemies(deltaTime) {
+                if (gameState.enemiesRemainingInWave > 0) {
+                    gameState.lastSpawnTime += deltaTime;
+                    
+                    if (gameState.lastSpawnTime >= gameState.enemySpawnRate) {
+                        const enemyType = pickEnemyType();
+                        createEnemy(enemyType);
+                        gameState.enemiesRemainingInWave--;
+                        gameState.lastSpawnTime = 0;
+                    }
+                } else if (gameState.enemies.length === 0) {
+                    // All enemies spawned and killed
+                    gameState.isWaveActive = false;
+                }
+            }
+            
+            function pickEnemyType() {
+                 // Simple logic: more difficult enemies start appearing after wave 3/5
+                 if (gameState.wave < 3) return 'Basic Slime';
+                 if (gameState.wave < 6) {
+                     return Math.random() < 0.7 ? 'Basic Slime' : 'Fast Zombie';
+                 }
+                 if (gameState.wave < 10) {
+                     const rand = Math.random();
+                     if (rand < 0.5) return 'Basic Slime';
+                     if (rand < 0.8) return 'Fast Zombie';
+                     return 'Tank Golem';
+                 }
+                 // High waves feature all types
+                 const types = Object.keys(ENEMY_CONFIG);
+                 return types[Math.floor(Math.random() * types.length)];
+            }
+
+            function createEnemy(name) {
+                const config = ENEMY_CONFIG[name];
+                let x, y;
+
+                // Spawn outside the canvas
+                if (Math.random() < 0.5) {
+                    // Spawn on top or bottom edge
+                    x = Math.random() * W;
+                    y = Math.random() < 0.5 ? -config.radius : H + config.radius;
+                } else {
+                    // Spawn on left or right edge
+                    x = Math.random() < 0.5 ? -config.radius : W + config.radius;
+                    y = Math.random() * H;
+                }
+                
+                const newEnemy = {
+                    ...config,
+                    name: name,
+                    x: x,
+                    y: y,
+                    maxHealth: config.health,
+                    lastAttackTime: 0,
+                    attackCooldown: 1.0, // Enemy attack frequency
+                    slowDuration: 0, // for Ice Shard effect
+                };
+                gameState.enemies.push(newEnemy);
+            }
+            
+            function killEnemy(enemy) {
+                // Drop gold
+                gameState.player.gold += enemy.gold;
+                
+                // Create death explosion particles
+                createDamageParticles(enemy.x, enemy.y, 0, enemy.color, 15);
+                
+                // Remove from array
+                gameState.enemies = gameState.enemies.filter(e => e !== enemy);
+            }
+
+            // --- WEAPON & SPELL CASTING ---
+
+            function handleAttack() {
+                const p = gameState.player;
+                
+                // Basic weapon attack (left click)
+                if (p.weapon.cooldownTimer <= 0) {
+                    p.weapon.cooldownTimer = p.weapon.fireRate;
+                    
+                    const bullet = {
+                        type: 'bullet',
+                        x: p.x + Math.cos(p.angle) * p.radius,
+                        y: p.y + Math.sin(p.angle) * p.radius,
+                        vx: Math.cos(p.angle) * p.weapon.bulletSpeed,
+                        vy: Math.sin(p.angle) * p.weapon.bulletSpeed,
+                        damage: p.weapon.damage,
+                        radius: 4,
+                        color: '#fef3c7',
+                        life: 2.0, // Time before removal
+                        effect: 'none'
+                    };
+                    gameState.projectiles.push(bullet);
+                    
+                    // Recoil particle effect
+                    for(let i = 0; i < 3; i++) {
+                        createParticle(p.x, p.y, '#fef3c7', 0.5, -p.angle + (Math.random() - 0.5) * 0.5, 50, 2);
+                    }
+                }
+            }
+            
+            function handleSpellCast() {
+                const p = gameState.player;
+                const spellName = p.knownSpells[p.activeSpellIndex];
+                const spell = SPELL_CONFIG[spellName];
+
+                if (p.mana >= spell.manaCost) {
+                    // Consume Mana
+                    p.mana -= spell.manaCost;
+                    
+                    // Call the specific cast function
+                    spell.cast(p.x, p.y, p.angle, spell);
+
+                    // Visual feedback for successful cast
+                    for(let i = 0; i < 5; i++) {
+                        createParticle(p.x, p.y, spell.color, 0.8, Math.random() * Math.PI * 2, 80, 1);
+                    }
+                    
+                } else {
+                    console.log("Not enough mana!");
+                    // Visual feedback for no mana
+                    for(let i = 0; i < 5; i++) {
+                        createParticle(p.x, p.y, '#3b82f6', 0.8, Math.random() * Math.PI * 2, 80, 1);
+                    }
+                }
+            }
+            
+            function toggleNextSpell() {
+                const p = gameState.player;
+                p.activeSpellIndex = (p.activeSpellIndex + 1) % p.knownSpells.length;
+                updateHUD();
+            }
+
+            // --- SPECIFIC SPELL IMPLEMENTATIONS ---
+
+            function castFireball(x, y, angle, config) {
+                const p = gameState.player;
+                const dx = Math.cos(angle);
+                const dy = Math.sin(angle);
+                
+                const fireball = {
+                    type: 'spell',
+                    x: x + dx * p.radius,
+                    y: y + dy * p.radius,
+                    vx: dx * config.speed,
+                    vy: dy * config.speed,
+                    damage: config.damage,
+                    radius: config.radius,
+                    color: config.color,
+                    life: 3.0,
+                    effect: config.effect
+                };
+                gameState.projectiles.push(fireball);
+                
+                // Visual effect on cast
+                for(let i = 0; i < 10; i++) {
+                    createParticle(x + dx * p.radius, y + dy * p.radius, config.color, 0.8, angle + (Math.random() - 0.5) * 1.5, 100, 3);
+                }
+            }
+            
+            function castIceShard(x, y, angle, config) {
+                const p = gameState.player;
+                const dx = Math.cos(angle);
+                const dy = Math.sin(angle);
+                
+                // Cast 3 piercing shards in a cone
+                for(let i = -1; i <= 1; i++) {
+                    const coneAngle = angle + i * 0.15; // 0.15 radians spread
+                    const shard = {
+                        type: 'spell',
+                        x: x + dx * p.radius,
+                        y: y + dy * p.radius,
+                        vx: Math.cos(coneAngle) * config.speed,
+                        vy: Math.sin(coneAngle) * config.speed,
+                        damage: config.damage,
+                        radius: config.radius,
+                        color: config.color,
+                        life: 5.0, // Long life for piercing
+                        effect: config.effect // Pierce/Slow
+                    };
+                    gameState.projectiles.push(shard);
+                }
+            }
+
+            let chainedEnemies = new Set();
+            
+            function castLightningBolt(x, y, angle, config) {
+                // Find the nearest enemy and fire the initial projectile
+                let nearestEnemy = null;
+                let minDistance = Infinity;
+                
+                gameState.enemies.forEach(e => {
+                    const dist = Math.sqrt((e.x - x)**2 + (e.y - y)**2);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        nearestEnemy = e;
+                    }
+                });
+                
+                if (nearestEnemy) {
+                    // Calculate angle to nearest enemy
+                    const dx_e = nearestEnemy.x - x;
+                    const dy_e = nearestEnemy.y - y;
+                    const angle_e = Math.atan2(dy_e, dx_e);
+
+                    const p = gameState.player;
+                    const bolt = {
+                        type: 'spell',
+                        x: x + Math.cos(angle_e) * p.radius,
+                        y: y + Math.sin(angle_e) * p.radius,
+                        vx: Math.cos(angle_e) * config.speed,
+                        vy: Math.sin(angle_e) * config.speed,
+                        damage: config.damage,
+                        radius: config.radius,
+                        color: config.color,
+                        life: 0.5, // Short life, immediately hits
+                        effect: config.effect // Chain
+                    };
+                    gameState.projectiles.push(bolt);
+                    
+                    // Initial chain effect
+                    chainedEnemies.clear();
+                    chainedEnemies.add(nearestEnemy);
+                } else {
+                     // No enemies, fire in the direction of the cursor
+                    // Use a simple, short-range projectile if no enemy is targetable
+                    const p = gameState.player;
+                    const dx = Math.cos(angle);
+                    const dy = Math.sin(angle);
+
+                    const misfire = {
+                        type: 'spell',
+                        x: x + dx * p.radius,
+                        y: y + dy * p.radius,
+                        vx: dx * 100, // Very slow
+                        vy: dy * 100,
+                        damage: 0,
+                        radius: 5,
+                        color: '#4b5563', // Grey misfire color
+                        life: 0.2, 
+                        effect: 'none'
+                    };
+                    gameState.projectiles.push(misfire);
+                }
+            }
+            
+            function chainLightning(targetEnemy, baseDamage, maxChains = 3, currentChain = 1) {
+                if (currentChain >= maxChains) return;
+
+                let nearestUnchainedEnemy = null;
+                let minDistance = Infinity;
+
+                gameState.enemies.forEach(e => {
+                    if (!chainedEnemies.has(e)) {
+                        const dist = Math.sqrt((e.x - targetEnemy.x)**2 + (e.y - targetEnemy.y)**2);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            nearestUnchainedEnemy = e;
+                        }
+                    }
+                });
+
+                if (nearestUnchainedEnemy) {
+                    const damage = baseDamage * (1 - currentChain * 0.2); // Reduced damage on chain
+                    nearestUnchainedEnemy.health -= damage;
+                    chainedEnemies.add(nearestUnchainedEnemy);
+                    
+                    createDamageParticles(nearestUnchainedEnemy.x, nearestUnchainedEnemy.y, damage, '#fcd34d');
+                    
+                    // Draw a visual chain line (particle effect)
+                    createChainParticles(targetEnemy.x, targetEnemy.y, nearestUnchainedEnemy.x, nearestUnchainedEnemy.y, '#fcd34d', 0.2);
+
+                    if (nearestUnchainedEnemy.health <= 0) {
+                        killEnemy(nearestUnchainedEnemy);
+                    } else {
+                        chainLightning(nearestUnchainedEnemy, baseDamage, maxChains, currentChain + 1);
+                    }
+                }
+            }
+
+            // --- EFFECTS & UTILITIES ---
+            
+            function createParticle(x, y, color, life, angle, speed, radius) {
+                const particle = {
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    color: color,
+                    life: life,
+                    alpha: 1.0,
+                    fadeRate: 1.0 / life,
+                    radius: radius,
+                    isText: false
+                };
+                gameState.particles.push(particle);
+            }
+
+            function createDamageParticles(x, y, damage, color, count = 5) {
+                // Damage text particle
+                if (damage > 0) {
+                    const damageText = {
+                        x: x, y: y,
+                        vx: (Math.random() - 0.5) * 50,
+                        vy: -100, // Move up
+                        text: Math.round(damage).toString(),
+                        color: color,
+                        life: 1.0, alpha: 1.0, fadeRate: 1.0,
+                        isText: true,
+                        radius: 0 // Not used for text
+                    };
+                    gameState.particles.push(damageText);
+                }
+                
+                // Explosion/hit particles
+                for (let i = 0; i < count; i++) {
+                    createParticle(
+                        x, y,
+                        color,
+                        0.5 + Math.random() * 0.5,
+                        Math.random() * Math.PI * 2,
+                        50 + Math.random() * 100,
+                        1 + Math.random() * 2
+                    );
+                }
+            }
+            
+            function createChainParticles(x1, y1, x2, y2, color, life) {
+                const steps = 10;
+                for (let i = 0; i < steps; i++) {
+                    const t = i / steps;
+                    const px = x1 + (x2 - x1) * t + (Math.random() - 0.5) * 10; // Add some jitter
+                    const py = y1 + (y2 - y1) * t + (Math.random() - 0.5) * 10;
+                    
+                    // Create a small, short-lived particle along the chain path
+                    createParticle(px, py, color, life, Math.random() * Math.PI * 2, 0, 2);
+                }
+            }
+
+            function applyAoeBurn(centerX, centerY, radius, damage) {
+                gameState.enemies.forEach(e => {
+                    const dx = e.x - centerX;
+                    const dy = e.y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < radius + e.radius) {
+                        // Apply damage
+                        e.health -= damage;
+                        createDamageParticles(e.x, e.y, damage, '#f87171');
+                        
+                        if (e.health <= 0) {
+                            killEnemy(e);
+                        }
+                    }
+                });
+                
+                // Visual AOE explosion
+                for(let i = 0; i < 30; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = Math.random() * radius;
+                    createParticle(
+                        centerX + Math.cos(angle) * dist,
+                        centerY + Math.sin(angle) * dist,
+                        '#facc15', // Yellow/orange for fire
+                        0.5,
+                        angle,
+                        0, // Static particles
+                        3 + Math.random() * 2
+                    );
+                }
+            }
+
+            // --- UI & HUD ---
+
+            function updateHUD() {
+                const p = gameState.player;
+                
+                // Update Stats Panel
+                document.getElementById('health-display').textContent = `${Math.round(p.health)} / ${p.maxHealth}`;
+                document.getElementById('mana-display').textContent = `${Math.round(p.mana)} / ${p.maxMana}`;
+                document.getElementById('gold-display').textContent = `${p.gold}`;
+                document.getElementById('wave-display').textContent = `${gameState.wave}`;
+
+                // Update Current Spell Display
+                const spellName = p.knownSpells[p.activeSpellIndex];
+                document.getElementById('current-spell-display').textContent = spellName;
+
+                // Handle Screen Visibility (Modals)
+                const startScreen = document.getElementById('start-screen');
+                const gameOverScreen = document.getElementById('game-over-screen');
+                const shopModal = document.getElementById('shop-modal');
+
+                startScreen.classList.toggle('hidden', gameState.screen !== 'start');
+                gameOverScreen.classList.toggle('hidden', gameState.screen !== 'gameover');
+                shopModal.classList.toggle('hidden', gameState.screen !== 'shop');
+            }
+            
+            function openShop() {
+                if (gameState.screen === 'game') {
+                    gameState.screen = 'shop';
+                    updateShopModal();
+                    // Ensure HUD update is called to make the modal visible
+                    updateHUD(); 
+                } else if (gameState.screen === 'shop') {
+                    closeShop();
+                }
+            }
+            
+            function closeShop() {
+                gameState.screen = 'game';
+                updateHUD();
+            }
+            
+            function updateShopModal() {
+                document.getElementById('shop-gold-display').textContent = gameState.player.gold;
+                const upgradeList = document.getElementById('upgrade-list');
+                const spellList = document.getElementById('spell-list');
+                
+                upgradeList.innerHTML = '';
+                spellList.innerHTML = '';
+
+                // Render Upgrades
+                UPGRADES.forEach(u => {
+                    const upgradeEl = document.createElement('div');
+                    const cost = u.cost;
+                    const canAfford = gameState.player.gold >= cost;
+
+                    upgradeEl.className = 'bg-gray-700 p-3 rounded-md flex justify-between items-center';
+                    upgradeEl.innerHTML = `
+                        <div>
+                            <p class="font-semibold text-white">${u.name}</p>
+                            <p class="text-xs text-gray-400">${u.description}</p>
+                        </div>
+                        <button id="buy-${u.id}-btn" class="btn-primary py-1 px-3 text-sm ${!canAfford ? 'opacity-50 cursor-not-allowed' : ''}" ${!canAfford ? 'disabled' : ''}>
+                            Buy (${cost} G)
+                        </button>
+                    `;
+                    upgradeList.appendChild(upgradeEl);
+
+                    if (canAfford) {
+                        upgradeEl.querySelector(`#buy-${u.id}-btn`).addEventListener('click', () => {
+                            buyUpgrade(u.id, cost, u.effect);
+                        });
+                    }
+                });
+                
+                // Render Spells (Basic placeholder since all spells are known initially)
+                // This section can be expanded for new spell acquisition
+                Object.entries(SPELL_CONFIG).forEach(([name, config]) => {
+                     const spellEl = document.createElement('div');
+                     spellEl.className = 'bg-gray-700 p-3 rounded-md';
+                     spellEl.innerHTML = `
+                        <p class="font-semibold text-white">${name}</p>
+                        <p class="text-xs text-gray-400">Mana: ${config.manaCost} | Damage: ${config.damage} | Effect: ${config.effect}</p>
+                    `;
+                     spellList.appendChild(spellEl);
+                });
+            }
+            
+            function buyUpgrade(id, cost, effectFn) {
+                if (gameState.player.gold >= cost) {
+                    gameState.player.gold -= cost;
+                    effectFn();
+                    // For simplicity, we just update the modal
+                    updateShopModal();
+                    updateHUD();
+                }
+            }
+
+
+            // --- GAME FLOW ---
+
+            function initGame() {
+                // Reset game state
+                gameState.player = {
+                    x: W / 2,
+                    y: H / 2,
+                    radius: 15,
+                    color: '#34d399',
+                    speed: 180,
+                    health: 100,
+                    maxHealth: 100,
+                    mana: 50,
+                    maxMana: 50,
+                    manaRegenRate: 5,
+                    attackCooldown: 0.3,
+                    lastAttackTime: 0,
+                    mouseX: W / 2,
+                    mouseY: H / 2,
+                    angle: 0,
+                    gold: 0,
+                    weapon: {
+                        damage: 10,
+                        bulletSpeed: 500,
+                        fireRate: 0.2,
+                        cooldownTimer: 0,
+                    },
+                    knownSpells: ['Fireball', 'Ice Shard', 'Lightning Bolt'],
+                    activeSpellIndex: 0,
+                };
+                
+                gameState.projectiles = [];
+                gameState.enemies = [];
+                gameState.particles = [];
+                gameState.wave = 0;
+                gameState.isWaveActive = false;
+                gameState.enemiesRemainingInWave = 0;
+                gameState.totalEnemiesForWave = 0;
+                gameState.enemySpawnRate = 3.0;
+
+                gameState.screen = 'game';
+                gameState.lastUpdateTime = performance.now();
+                updateHUD();
+                startNextWave();
+            }
+
+            function endGame() {
+                gameState.screen = 'gameover';
+                document.getElementById('final-score').textContent = `You survived ${gameState.wave} waves and collected ${gameState.player.gold} gold!`;
+                updateHUD();
+            }
+
+
+            // --- EVENT LISTENERS ---
+
+            document.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                
+                if (gameState.screen === 'start' && key === 'enter') {
+                    initGame();
+                    return;
+                }
+                if (gameState.screen === 'gameover' && key === 'enter') {
+                    initGame();
+                    return;
+                }
+                
+                if (gameState.screen === 'shop' && key === 'tab') {
+                    closeShop();
+                    e.preventDefault();
+                    return;
+                }
+                if (gameState.screen === 'game' && key === 'tab') {
+                    openShop();
+                    e.preventDefault();
+                    return;
+                }
+                
+                if (gameState.screen === 'game') {
+                    if (key === 'e') {
+                        handleSpellCast();
+                    } else if (key === 'q' || key === 'f') { // F keybind for spell toggle
+                        toggleNextSpell();
+                    } else if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+                        gameState.keys[key] = true;
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+                    gameState.keys[key] = false;
+                }
+            });
+            
+            // Mouse movement updates the player's aim angle
+            canvas.addEventListener('mousemove', (e) => {
+                if (gameState.screen !== 'game') return;
+
+                const rect = canvas.getBoundingClientRect();
+                gameState.player.mouseX = e.clientX - rect.left;
+                gameState.player.mouseY = e.clientY - rect.top;
+            });
+
+            // Click event for ALL weapon types
+            canvas.addEventListener('mousedown', (e) => {
+                if (gameState.screen !== 'game') return;
+                handleAttack();
+            });
+
+
+            // UI Button Handlers
+            document.getElementById('start-game-btn').addEventListener('click', initGame);
+            document.getElementById('restart-game-btn').addEventListener('click', initGame);
+            document.getElementById('cast-spell-btn').addEventListener('click', handleSpellCast);
+            document.getElementById('toggle-spell-btn').addEventListener('click', toggleNextSpell);
+            document.getElementById('shop-btn').addEventListener('click', openShop);
+            document.getElementById('close-shop-btn').addEventListener('click', closeShop);
+
+
+            // Start the game loop
+            window.onload = function () {
+                requestAnimationFrame(gameLoop);
+                updateHUD(); // Initial HUD setup
+            }
+        })(); // End of IIFE
+	</script>
+</body>
+
+</html></body><html>
