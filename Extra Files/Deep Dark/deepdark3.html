@@ -1,0 +1,1817 @@
+<!doctype html><html><head></head><body><!DOCTYPE html>
+<html lang="en">
+
+<!-- This is a file by the Elite Composite Of Games-->
+<!-- All rights go to the owner of this game. -->
+<!-- For ECOG go to https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
+
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>The Deep Dark - Infinite View & Color</title>
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+			background-color: #000;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			user-select: none;
+		}
+
+		#canvas-container {
+			width: 100vw;
+			height: 100vh;
+			display: block;
+		}
+
+		/* UI Overlay */
+		#ui-layer {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+		}
+
+		/* HUD */
+		#hud-top {
+			padding: 20px;
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+		}
+
+		#stats-panel {
+			background: rgba(0, 0, 0, 0.6);
+			padding: 15px;
+			border-radius: 8px;
+			border-left: 4px solid #c0392b;
+			color: #fff;
+			text-shadow: 1px 1px 0 #000;
+		}
+
+		.stat-row {
+			display: flex;
+			justify-content: space-between;
+			min-width: 150px;
+			margin-bottom: 5px;
+			font-weight: bold;
+		}
+
+		.bar-container {
+			width: 100%;
+			height: 10px;
+			background: #333;
+			margin-top: 2px;
+			border-radius: 5px;
+			overflow: hidden;
+		}
+
+		#hp-bar {
+			height: 100%;
+			background: #e74c3c;
+			width: 100%;
+			transition: width 0.2s;
+		}
+
+		#mana-bar {
+			height: 100%;
+			background: #3498db;
+			width: 100%;
+			transition: width 0.2s;
+		}
+
+		#xp-bar {
+			height: 100%;
+			background: #f1c40f;
+			width: 0%;
+			transition: width 0.2s;
+		}
+
+		#gold-display {
+			color: #f1c40f;
+			font-size: 22px;
+			margin-top: 10px;
+			display: flex;
+			align-items: center;
+		}
+
+		#gold-display::before {
+			content: 'G';
+			display: inline-block;
+			background: #f1c40f;
+			color: #000;
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			text-align: center;
+			line-height: 20px;
+			margin-right: 8px;
+			font-size: 14px;
+			font-weight: bold;
+		}
+
+		#minimap-container {
+			background: rgba(0, 0, 0, 0.8);
+			border: 2px solid #555;
+			border-radius: 50%;
+			overflow: hidden;
+			width: 150px;
+			height: 150px;
+			position: relative;
+		}
+
+		#minimap {
+			width: 100%;
+			height: 100%;
+		}
+
+		#crosshair {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 20px;
+			height: 20px;
+			border: 2px solid rgba(255, 255, 255, 0.8);
+			border-radius: 50%;
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+		}
+
+		#crosshair::after {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 4px;
+			height: 4px;
+			background: red;
+			transform: translate(-50%, -50%);
+			border-radius: 50%;
+		}
+
+		/* Messages */
+		#message-area {
+			position: absolute;
+			top: 30%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			text-align: center;
+			color: white;
+			text-shadow: 0 0 10px #000;
+			font-size: 24px;
+			pointer-events: none;
+			transition: opacity 0.5s;
+			opacity: 0;
+		}
+
+		/* Start Screen */
+		#blocker {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.8);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 10;
+			pointer-events: auto;
+			cursor: pointer;
+			backdrop-filter: blur(5px);
+		}
+
+		#instructions {
+			text-align: center;
+			color: white;
+			max-width: 600px;
+		}
+
+		h1 {
+			font-size: 60px;
+			margin: 0;
+			color: #e74c3c;
+			text-transform: uppercase;
+			letter-spacing: 5px;
+			text-shadow: 0 0 20px #c0392b;
+		}
+
+		p {
+			font-size: 18px;
+			color: #ccc;
+			line-height: 1.6;
+		}
+
+		.key {
+			display: inline-block;
+			background: #444;
+			padding: 2px 8px;
+			border-radius: 4px;
+			border-bottom: 2px solid #222;
+			color: #fff;
+			font-weight: bold;
+			margin: 0 2px;
+		}
+
+		/* General Menu Style (Shop & Save) */
+		.game-menu {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: rgba(0, 0, 0, 0.95);
+			border: 2px solid #f1c40f;
+			padding: 25px;
+			color: white;
+			width: 600px;
+			display: none;
+			z-index: 20;
+			border-radius: 10px;
+			pointer-events: auto;
+			box-shadow: 0 0 30px rgba(241, 196, 15, 0.2);
+			max-height: 90vh;
+			overflow-y: auto;
+		}
+
+		.menu-title {
+			font-size: 30px;
+			color: #f1c40f;
+			text-align: center;
+			margin-bottom: 20px;
+			text-transform: uppercase;
+			letter-spacing: 2px;
+			border-bottom: 1px solid #444;
+			padding-bottom: 10px;
+		}
+
+		.menu-section {
+			margin-bottom: 20px;
+		}
+
+		.menu-section h3 {
+			color: #aaa;
+			font-size: 16px;
+			margin-bottom: 10px;
+			text-transform: uppercase;
+		}
+
+		/* Shop Specific */
+		.shop-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			background: #222;
+			margin: 8px 0;
+			padding: 12px;
+			border-radius: 5px;
+			border: 1px solid #333;
+			transition: background 0.2s;
+		}
+
+		.shop-item:hover {
+			background: #333;
+			border-color: #555;
+		}
+
+		.item-info {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.item-name {
+			font-weight: bold;
+			font-size: 18px;
+			color: #fff;
+		}
+
+		.item-desc {
+			font-size: 12px;
+			color: #888;
+			margin-top: 4px;
+		}
+
+		.buy-btn {
+			background: #27ae60;
+			color: white;
+			border: none;
+			padding: 8px 16px;
+			cursor: pointer;
+			font-weight: bold;
+			border-radius: 4px;
+			transition: all 0.2s;
+			min-width: 80px;
+		}
+
+		.buy-btn:disabled {
+			background: #444;
+			color: #888;
+			cursor: not-allowed;
+		}
+
+		.buy-btn:hover:not(:disabled) {
+			background: #2ecc71;
+			transform: scale(1.05);
+		}
+
+		#close-shop {
+			display: block;
+			width: 100%;
+			padding: 10px;
+			margin-top: 20px;
+			background: #c0392b;
+			color: white;
+			border: none;
+			font-weight: bold;
+			cursor: pointer;
+			border-radius: 5px;
+		}
+
+		#close-shop:hover {
+			background: #e74c3c;
+		}
+
+		/* Save Menu Specific */
+		.save-slot {
+			display: grid;
+			grid-template-columns: 1fr 100px 100px;
+			gap: 10px;
+			align-items: center;
+			background: #222;
+			margin: 8px 0;
+			padding: 12px;
+			border-radius: 5px;
+			border: 1px solid #333;
+		}
+
+		.slot-info {
+			color: #ccc;
+			font-size: 14px;
+		}
+
+		.slot-title {
+			font-weight: bold;
+			font-size: 16px;
+			color: #fff;
+			margin-bottom: 4px;
+		}
+
+		.load-btn,
+		.save-btn {
+			padding: 8px 10px;
+			font-weight: bold;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			transition: background 0.2s;
+		}
+
+		.save-btn {
+			background: #3498db;
+			color: white;
+		}
+
+		.save-btn:hover {
+			background: #5dade2;
+		}
+
+		.load-btn {
+			background: #f39c12;
+			color: white;
+		}
+
+		.load-btn:disabled {
+			background: #444;
+			color: #888;
+			cursor: not-allowed;
+		}
+
+		.load-btn:hover:not(:disabled) {
+			background: #f5b041;
+		}
+
+		#save-slots-container {
+			min-height: 150px;
+		}
+
+		#auth-info {
+			text-align: center;
+			margin-top: 15px;
+			font-size: 12px;
+			color: #888;
+			word-break: break-all;
+		}
+
+		/* Floating Text */
+		.floating-text {
+			position: absolute;
+			font-weight: bold;
+			font-size: 20px;
+			pointer-events: none;
+			animation: floatUp 1s forwards;
+			text-shadow: 0 0 4px #000;
+		}
+
+		@keyframes floatUp {
+			0% {
+				transform: translateY(0) scale(1);
+				opacity: 1;
+			}
+
+			100% {
+				transform: translateY(-50px) scale(1.2);
+				opacity: 0;
+			}
+		}
+	</style>
+	<!-- Load Three.js -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+
+	<div id="canvas-container"></div>
+
+	<div id="ui-layer">
+		<div id="hud-top">
+			<div id="stats-panel">
+				<div class="stat-row"><span>LEVEL</span> <span id="level-display">1</span></div>
+				<div class="stat-row"><span>DEPTH</span> <span id="depth-display">1</span></div>
+				<div class="stat-row" style="margin-top:10px;"><span>HEALTH</span> <span id="hp-text">100/100</span>
+				</div>
+				<div class="bar-container">
+					<div id="hp-bar"></div>
+				</div>
+				<div class="stat-row" style="margin-top:5px;"><span>MANA</span> <span id="mana-text">100/100</span>
+				</div>
+				<div class="bar-container">
+					<div id="mana-bar"></div>
+				</div>
+				<div class="stat-row" style="margin-top:5px;"><span>XP</span></div>
+				<div class="bar-container">
+					<div id="xp-bar"></div>
+				</div>
+				<div id="gold-display">0</div>
+			</div>
+			<div id="minimap-container">
+				<canvas id="minimap"></canvas>
+			</div>
+		</div>
+		<div id="message-area">Level Complete!</div>
+	</div>
+
+	<!-- Shop UI -->
+	<div id="shop-panel" class="game-menu">
+		<div class="menu-title" id="shop-title">The Blacksmith (B)</div>
+		<div id="shop-items-container">
+			<!-- Items injected by JS -->
+		</div>
+		<button id="close-shop">CLOSE (B)</button>
+	</div>
+
+	<!-- Save Menu UI -->
+	<div id="save-menu" class="game-menu">
+		<div class="menu-title">Save / Load Game (L)</div>
+		<p style="text-align: center; color: #ccc;">Saves are unique to your account and stored in the cloud.</p>
+		<div id="save-slots-container">
+			<p style="text-align: center; color: #f1c40f;">Loading...</p>
+		</div>
+		<div id="auth-info">
+			<span id="user-id-display">Connecting...</span>
+		</div>
+		<button id="close-save-menu" class="save-btn" style="width: 100%; margin-top: 20px; background: #c0392b;">CLOSE (L)</button>
+	</div>
+
+	<div id="crosshair"></div>
+
+	<div id="blocker">
+		<div id="instructions">
+			<h1>The Deep Dark</h1>
+			<p>Procedural 3D Dungeon Crawler</p>
+			<p>
+				<span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
+				Move &nbsp;
+				<span class="key">SHIFT</span> Run &nbsp;
+				<span class="key">SPACE</span> Jump<br>
+				<span class="key">L-CLICK</span> Shoot &nbsp;
+				<span class="key">B</span> Shop &nbsp;
+				<span class="key">L</span> Save/Load<br>
+				<span class="key">Q</span> Heal Spell &nbsp;
+				<span class="key">E</span> Fireball Spell
+			</p>
+			<p style="margin-top: 30px; font-size: 24px; color: #f1c40f; animation: pulse 1s infinite;">Click to Start
+			</p>
+		</div>
+	</div>
+
+	<script type="module">
+		// --- Firebase Imports ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Globals ---
+        let app, db, auth;
+        let userId = null;
+        let isAuthReady = false;
+        
+        // Use global variables provided by the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Firestore Helper Path
+        const getPrivateCollectionRef = (collectionName) => {
+            if (!db || !userId) return null; // Added check for db initialization
+            return collection(db, `artifacts/${appId}/users/${userId}/${collectionName}`);
+        };
+
+        // --- Game Constants & Configuration ---
+        const TILE_SIZE = 10;
+        const WALL_HEIGHT = 12;
+        const PLAYER_HEIGHT = 4;
+        const PLAYER_SPEED = 30;
+        const PLAYER_RUN_SPEED = 50;
+        const PLAYER_JUMP_FORCE = 30;
+        const GRAVITY = 80;
+        const FOV = 75;
+        const DRAW_DISTANCE = 10000; // Increased far clipping for infinite view
+        
+        // --- Global State ---
+        let scene, camera, renderer;
+        let clock = new THREE.Clock();
+        let isGameActive = false;
+        let isShopOpen = false;
+        let isSaveMenuOpen = false;
+
+        // Global variables to hold the current level textures
+        let currentWallTexture, currentFloorTexture, currentCeilingTexture;
+        
+        // Input
+        const keys = { w: false, a: false, s: false, d: false, shift: false, space: false };
+        
+        // Entities
+        let player; // This will be set in startGame() after Firebase init
+        let dungeon;
+        let enemies = [];
+        let projectiles = [];
+        let particles = [];
+        let floatingTexts = [];
+        let saveSlots = []; // Data from Firestore
+
+        // --- Shop Database ---
+        const SHOP_ITEMS = [
+            { id: 'potion_hp', name: 'Health Potion', desc: 'Restores 50 HP', price: 50, type: 'consumable' },
+            { id: 'potion_mana', name: 'Mana Potion', desc: 'Restores 50 Mana', price: 30, type: 'consumable' },
+            // Default and upgraded weapons
+            { id: 'w_blaster', name: 'Blaster Rifle', desc: 'Rapid fire, moderate damage', price: 200, type: 'weapon', stats: { damage: 15, cooldown: 0.15, speed: 100, color: 0x00ffff } },
+            { id: 'w_plasma', name: 'Plasma Cannon', desc: 'Slow, massive AoE damage', price: 500, type: 'weapon', stats: { damage: 80, cooldown: 1.0, speed: 40, color: 0xff00ff, radius: 1.0, explosive: true } },
+            // NEW WEAPONS
+            { id: 'w_shotgun', name: 'Energy Shotgun', desc: 'High close-range damage (slow reload)', price: 400, type: 'weapon', stats: { damage: 120, cooldown: 1.5, speed: 50, color: 0xffa500 } },
+            { id: 'w_mg', name: 'Laser Machine Gun', desc: 'Extremely fast fire rate, low damage', price: 750, type: 'weapon', stats: { damage: 5, cooldown: 0.05, speed: 120, color: 0xff0000 } },
+            { id: 'w_railgun', name: 'Railgun', desc: 'Very high damage, slow, piercing shot', price: 1000, type: 'weapon', stats: { damage: 250, cooldown: 3.0, speed: 200, color: 0x7cfc00, piercing: true } },
+            // Spells
+            { id: 's_heal', name: 'Spell: Heal', desc: 'Unlock Heal (Press Q)', price: 300, type: 'spell' },
+            { id: 's_fireball', name: 'Spell: Fireball', desc: 'Unlock Fireball (Press E)', price: 600, type: 'spell' }
+        ];
+
+        // --- Utility Functions ---
+        const rng = (min, max) => Math.random() * (max - min) + min;
+        const randInt = (min, max) => Math.floor(rng(min, max));
+
+        // Procedural Texture Generator
+        function createProceduralTexture(type, colorBase) {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = colorBase;
+            ctx.fillRect(0, 0, size, size);
+
+            if (type === 'wall') {
+                ctx.fillStyle = "rgba(0,0,0,0.2)";
+                const brickH = 64; const brickW = 128;
+                for(let y=0; y<size; y+=brickH) {
+                    const offset = (y/brickH) % 2 === 0 ? 0 : brickW/2;
+                    for(let x=-brickW; x<size; x+=brickW) {
+                        // Apply slight random variation to brick color
+                        const r = randInt(-10, 10);
+                        const g = randInt(-10, 10);
+                        const b = randInt(-10, 10);
+                        ctx.fillStyle = `rgba(${40+r}, ${40+g}, ${40+b}, 0.8)`; 
+                        ctx.fillRect(x + offset + 2, y + 2, brickW - 4, brickH - 4);
+                        if(Math.random() > 0.5) {
+                            ctx.fillStyle = "rgba(0,0,0,0.1)";
+                            ctx.fillRect(x + offset + 10, y + 10, rng(10, 50), rng(10, 30));
+                            ctx.fillStyle = `rgba(${40+r}, ${40+g}, ${40+b}, 0.8)`;
+                        }
+                    }
+                }
+            } else if (type === 'floor') {
+                ctx.fillStyle = "rgba(255,255,255,0.05)";
+                for(let i=0; i<40; i++) ctx.fillRect(rng(0, size), rng(0, size), rng(10, 100), rng(10, 100));
+                const imageData = ctx.getImageData(0,0,size,size);
+                const data = imageData.data;
+                for(let i=0; i<data.length; i+=4) {
+                    const val = (Math.random() - 0.5) * 20;
+                    data[i] += val; data[i+1] += val; data[i+2] += val;
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.magFilter = THREE.NearestFilter;
+            texture.minFilter = THREE.LinearMipMapLinearFilter;
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            return texture;
+        }
+
+        // --- Classes ---
+        class Dungeon {
+            constructor(width, height, level, wallTex, floorTex, ceilTex) {
+                this.width = width;
+                this.height = height;
+                this.level = level;
+                this.grid = []; 
+                this.mesh = null;
+                this.floorMesh = null;
+                this.ceilMesh = null;
+                this.wallTex = wallTex;
+                this.floorTex = floorTex;
+                this.ceilTex = ceilTex;
+                this.generate();
+                this.buildMesh();
+            }
+
+            generate() {
+                for (let y = 0; y < this.height; y++) {
+                    let row = [];
+                    for (let x = 0; x < this.width; x++) row.push(1);
+                    this.grid.push(row);
+                }
+
+                const stack = [];
+                const start = { x: 1, y: 1 };
+                this.grid[start.y][start.x] = 0;
+                stack.push(start);
+                
+                this.spawnPoint = new THREE.Vector3(start.x * TILE_SIZE + TILE_SIZE/2, PLAYER_HEIGHT, start.y * TILE_SIZE + TILE_SIZE/2);
+
+                const dirs = [{ x: 0, y: -2 }, { x: 0, y: 2 }, { x: -2, y: 0 }, { x: 2, y: 0 }];
+
+                while (stack.length > 0) {
+                    const current = stack[stack.length - 1];
+                    dirs.sort(() => Math.random() - 0.5);
+                    
+                    let moved = false;
+                    for (let dir of dirs) {
+                        const nx = current.x + dir.x;
+                        const ny = current.y + dir.y;
+
+                        if (nx > 0 && nx < this.width - 1 && ny > 0 && ny < this.height - 1 && this.grid[ny][nx] === 1) {
+                            this.grid[ny][nx] = 0;
+                            this.grid[current.y + dir.y/2][current.x + dir.x/2] = 0;
+                            stack.push({ x: nx, y: ny });
+                            moved = true;
+                            break;
+                        }
+                    }
+
+                    if (!moved) {
+                        if (Math.random() < 0.1 && stack.length > 5) this.createRoom(current.x, current.y);
+                        stack.pop();
+                    }
+                }
+
+                let exitPlaced = false;
+                while(!exitPlaced) {
+                    let rx = randInt(this.width/2, this.width-1);
+                    let ry = randInt(this.height/2, this.height-1);
+                    if(this.grid[ry][rx] === 0) {
+                        this.grid[ry][rx] = 2;
+                        this.exitPoint = new THREE.Vector3(rx*TILE_SIZE + TILE_SIZE/2, 5, ry*TILE_SIZE + TILE_SIZE/2);
+                        exitPlaced = true;
+                    }
+                }
+            }
+
+            createRoom(cx, cy) {
+                const size = randInt(2, 5);
+                for(let y = cy - size; y <= cy + size; y++) {
+                    for(let x = cx - size; x <= cx + size; x++) {
+                        if(y>0 && y<this.height-1 && x>0 && x<this.width-1) this.grid[y][x] = 0;
+                    }
+                }
+            }
+
+            buildMesh() {
+                if(this.mesh) scene.remove(this.mesh);
+                if(this.floorMesh) scene.remove(this.floorMesh);
+                if(this.ceilMesh) scene.remove(this.ceilMesh);
+
+                const wallGeo = new THREE.BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE);
+                const floorGeo = new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE);
+                floorGeo.rotateX(-Math.PI/2);
+                
+                let wallCount = 0;
+                let floorCount = 0;
+                
+                for(let y=0; y<this.height; y++) {
+                    for(let x=0; x<this.width; x++) {
+                        if(this.grid[y][x] === 1) wallCount++;
+                        else floorCount++;
+                    }
+                }
+
+                const wallMat = new THREE.MeshStandardMaterial({ map: this.wallTex, roughness: 0.8 });
+                const floorMat = new THREE.MeshStandardMaterial({ map: this.floorTex, roughness: 0.6 });
+                // Note: Keeping the ceiling dark for atmosphere
+                const ceilMat = new THREE.MeshStandardMaterial({ map: this.ceilTex, roughness: 0.9, color: 0x333333 }); 
+
+                this.mesh = new THREE.InstancedMesh(wallGeo, wallMat, wallCount);
+                this.floorMesh = new THREE.InstancedMesh(floorGeo, floorMat, floorCount);
+                this.ceilMesh = new THREE.InstancedMesh(floorGeo, ceilMat, floorCount);
+
+                const dummy = new THREE.Object3D();
+                let iWall = 0;
+                let iFloor = 0;
+
+                for(let y=0; y<this.height; y++) {
+                    for(let x=0; x<this.width; x++) {
+                        dummy.position.set(x*TILE_SIZE + TILE_SIZE/2, 0, y*TILE_SIZE + TILE_SIZE/2);
+                        dummy.updateMatrix();
+
+                        if(this.grid[y][x] === 1) {
+                            dummy.position.y = WALL_HEIGHT/2;
+                            dummy.updateMatrix();
+                            this.mesh.setMatrixAt(iWall++, dummy.matrix);
+                        } else {
+                            dummy.position.y = 0;
+                            dummy.updateMatrix();
+                            this.floorMesh.setMatrixAt(iFloor, dummy.matrix);
+                            dummy.position.y = WALL_HEIGHT;
+                            dummy.rotation.x = Math.PI;
+                            dummy.updateMatrix();
+                            this.ceilMesh.setMatrixAt(iFloor, dummy.matrix);
+                            dummy.rotation.x = 0;
+                            iFloor++;
+                        }
+                    }
+                }
+
+                this.mesh.instanceMatrix.needsUpdate = true;
+                this.floorMesh.instanceMatrix.needsUpdate = true;
+                this.ceilMesh.instanceMatrix.needsUpdate = true;
+                
+                scene.add(this.mesh);
+                scene.add(this.floorMesh);
+                scene.add(this.ceilMesh);
+
+                const portalGeo = new THREE.CylinderGeometry(1, 1, 8, 16);
+                const portalMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.6 });
+                this.portal = new THREE.Mesh(portalGeo, portalMat);
+                this.portal.position.copy(this.exitPoint);
+                scene.add(this.portal);
+
+                const pl = new THREE.PointLight(0x00ff00, 1, 30);
+                pl.position.copy(this.exitPoint);
+                pl.position.y += 5;
+                scene.add(pl);
+            }
+
+            isSolid(x, z) {
+                const gx = Math.floor(x / TILE_SIZE);
+                const gy = Math.floor(z / TILE_SIZE);
+                if (gx < 0 || gx >= this.width || gy < 0 || gy >= this.height) return true;
+                return this.grid[gy][gx] === 1;
+            }
+        }
+
+        class Player {
+            constructor() {
+                // Increased the far clipping plane to match DRAW_DISTANCE for infinite view
+                this.camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, DRAW_DISTANCE);
+                this.camera.rotation.order = 'YXZ';
+                
+                // Weapon Model
+                this.weaponGroup = new THREE.Group();
+                const barrel = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.5, 0.5, 2),
+                    new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8 })
+                );
+                barrel.position.set(2, -1.5, -3);
+                this.weaponGroup.add(barrel);
+                this.barrel = barrel;
+                
+                this.camera.add(this.weaponGroup);
+                scene.add(this.camera);
+
+                this.light = new THREE.PointLight(0xffaa55, 1.5, 50);
+                this.camera.add(this.light);
+
+                this.velocity = new THREE.Vector3();
+                this.onGround = false;
+                this.canJump = false;
+
+                // Stats
+                this.maxHp = 100;
+                this.hp = 100;
+                this.maxMana = 100;
+                this.mana = 100;
+                this.xp = 0;
+                this.xpToLevel = 100;
+                this.level = 1;
+                this.depth = 1;
+                this.gold = 0;
+
+                // Inventory
+                this.ownedWeapons = ['default'];
+                // Default weapon stats: Rusty Pistol
+                this.currentWeapon = { damage: 25, cooldown: 0.3, speed: 80, color: 0xffff00, name: 'Rusty Pistol' }; 
+                this.shootTimer = 0;
+                this.spells = []; // 'heal', 'fireball'
+            }
+
+            // Method to convert player state to a serializable object
+            serialize() {
+                // Helper to get weapon ID based on its properties
+                const currentWeaponId = SHOP_ITEMS.find(i => 
+                    i.type === 'weapon' && 
+                    i.stats.damage === this.currentWeapon.damage && 
+                    i.stats.cooldown === this.currentWeapon.cooldown
+                )?.id || 'default';
+
+                return {
+                    pos: { x: this.camera.position.x, y: this.camera.position.y, z: this.camera.position.z },
+                    rot: { x: this.camera.rotation.x, y: this.camera.rotation.y, z: this.camera.rotation.z },
+                    stats: {
+                        maxHp: this.maxHp, hp: this.hp, maxMana: this.maxMana, mana: this.mana,
+                        xp: this.xp, xpToLevel: this.xpToLevel, level: this.level, depth: this.depth, gold: this.gold
+                    },
+                    inventory: {
+                        currentWeaponId: currentWeaponId,
+                        ownedWeapons: this.ownedWeapons,
+                        spells: this.spells
+                    }
+                };
+            }
+
+            // Method to load player state from a serializable object
+            deserialize(data) {
+                // Position and Rotation
+                this.camera.position.set(data.pos.x, data.pos.y, data.pos.z);
+                this.camera.rotation.set(data.rot.x, data.rot.y, data.rot.z);
+
+                // Stats
+                Object.assign(this, data.stats);
+
+                // Inventory
+                this.ownedWeapons = data.inventory.ownedWeapons;
+                this.spells = data.inventory.spells;
+                this.equipWeapon(data.inventory.currentWeaponId || 'default', true);
+            }
+
+
+            equipWeapon(id, skipMessage = false) {
+                const item = SHOP_ITEMS.find(i => i.id === id);
+                
+                if(item && item.type === 'weapon') {
+                    // Assign all stats, including new properties like piercing/explosive
+                    this.currentWeapon = {...item.stats, name: item.name};
+                    
+                    // Visual change
+                    this.barrel.material.color.setHex(item.stats.color);
+                    if (!skipMessage) showMessage(`Equipped ${item.name}`);
+                } else if (id === 'default') {
+                    // Default weapon fallback (Rusty Pistol)
+                    this.currentWeapon = { damage: 25, cooldown: 0.3, speed: 80, color: 0xffff00, name: 'Rusty Pistol' };
+                    this.barrel.material.color.setHex(0x333333);
+                }
+            }
+
+            update(dt) {
+                // Mana Regen
+                if(this.mana < this.maxMana) this.mana += 5 * dt;
+
+                // Movement Logic
+                let speed = keys.shift ? PLAYER_RUN_SPEED : PLAYER_SPEED;
+                
+                if (keys.w) this.velocity.z -= speed * dt * 5;
+                if (keys.s) this.velocity.z += speed * dt * 5;
+                if (keys.a) this.velocity.x -= speed * dt * 5;
+                if (keys.d) this.velocity.x += speed * dt * 5;
+
+                if (keys.space && this.canJump) {
+                    this.velocity.y = PLAYER_JUMP_FORCE;
+                    this.canJump = false;
+                }
+
+                this.velocity.y -= GRAVITY * dt;
+                this.velocity.x -= this.velocity.x * 10.0 * dt;
+                this.velocity.z -= this.velocity.z * 10.0 * dt;
+
+                this.moveWithCollision(dt);
+
+                if (this.camera.position.y < PLAYER_HEIGHT) {
+                    this.velocity.y = 0;
+                    this.camera.position.y = PLAYER_HEIGHT;
+                    this.canJump = true;
+                }
+
+                if(this.shootTimer > 0) this.shootTimer -= dt;
+
+                const time = Date.now() * 0.005;
+                if(this.velocity.length() > 1) {
+                    this.weaponGroup.position.y = Math.sin(time * 2) * 0.1;
+                    this.weaponGroup.position.x = Math.cos(time) * 0.05;
+                }
+
+                const d = this.camera.position.distanceTo(dungeon.exitPoint);
+                if(d < 5) nextLevel();
+
+                updateHUD();
+            }
+
+            moveWithCollision(dt) {
+                const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+                const right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
+                forward.y = 0; forward.normalize();
+                right.y = 0; right.normalize();
+
+                const moveVec = new THREE.Vector3();
+                moveVec.addScaledVector(forward, -this.velocity.z * dt);
+                moveVec.addScaledVector(right, this.velocity.x * dt);
+
+                const currentPos = this.camera.position.clone();
+                const radius = 1.0; 
+
+                let targetX = currentPos.x + moveVec.x;
+                if (!dungeon.isSolid(targetX + (moveVec.x > 0 ? radius : -radius), currentPos.z)) {
+                    this.camera.position.x = targetX;
+                } else {
+                    this.velocity.x = 0;
+                }
+
+                let targetZ = currentPos.z + moveVec.z;
+                if (!dungeon.isSolid(this.camera.position.x, targetZ + (moveVec.z > 0 ? radius : -radius))) {
+                    this.camera.position.z = targetZ;
+                } else {
+                    this.velocity.z = 0;
+                }
+
+                this.camera.position.y += this.velocity.y * dt;
+            }
+
+            shoot() {
+                if(this.shootTimer > 0) return;
+                
+                const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+                const p = new Projectile(this.camera.position.clone(), dir, true, this.currentWeapon);
+                projectiles.push(p);
+                
+                this.camera.rotation.x += 0.05; // Recoil
+                
+                const flash = new THREE.PointLight(this.currentWeapon.color, 2, 10);
+                flash.position.copy(this.camera.position).add(dir.multiplyScalar(2));
+                scene.add(flash);
+                setTimeout(() => scene.remove(flash), 50);
+
+                this.shootTimer = this.currentWeapon.cooldown;
+            }
+
+            castSpell(spellName) {
+                if(!this.spells.includes(spellName)) {
+                    showMessage("Spell not learned!");
+                    return;
+                }
+
+                if(spellName === 'heal') {
+                    if(this.mana >= 30) {
+                        this.mana -= 30;
+                        this.hp = Math.min(this.hp + 50, this.maxHp);
+                        createFloatingText("+50 HP", this.camera.position.clone().add(new THREE.Vector3(0,0,-2)), '#2ecc71');
+                        // Effect
+                        const light = new THREE.PointLight(0x2ecc71, 2, 20);
+                        light.position.copy(this.camera.position);
+                        scene.add(light);
+                        setTimeout(() => scene.remove(light), 200);
+                    } else showMessage("Not enough mana!");
+                }
+                else if (spellName === 'fireball') {
+                    if (this.mana >= 50) {
+                        this.mana -= 50;
+                        const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+                        // Fireball projectile stats
+                        const stats = { damage: 100, speed: 40, color: 0xe67e22, radius: 1.5, explosive: true };
+                        const p = new Projectile(this.camera.position.clone(), dir, true, stats);
+                        projectiles.push(p);
+                    } else showMessage("Not enough mana!");
+                }
+            }
+
+            takeDamage(amount) {
+                this.hp -= amount;
+                createFloatingText(`-${amount}`, this.camera.position.clone().add(new THREE.Vector3(0, -1, -2)), '#e74c3c');
+                if (this.hp <= 0) gameOver();
+            }
+
+            gainXp(amount) {
+                this.xp += amount;
+                if (this.xp >= this.xpToLevel) {
+                    this.xp -= this.xpToLevel;
+                    this.level++;
+                    this.maxHp += 20;
+                    this.hp = this.maxHp;
+                    this.maxMana += 20;
+                    this.mana = this.maxMana;
+                    this.xpToLevel = Math.floor(this.xpToLevel * 1.5);
+                    showMessage("LEVEL UP!");
+                }
+            }
+        }
+
+        class Enemy {
+            constructor(position) {
+                const geo = new THREE.BoxGeometry(3, 3, 3);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x8e44ad, roughness: 0.2 });
+                this.mesh = new THREE.Mesh(geo, mat);
+                this.mesh.position.copy(position);
+                scene.add(this.mesh);
+                
+                this.light = new THREE.PointLight(0x8e44ad, 0.5, 10);
+                this.mesh.add(this.light);
+
+                this.hp = 50 + (player.depth * 10);
+                this.speed = 15 + (player.depth * 1);
+                this.damage = 10 + (player.depth * 2);
+                this.goldValue = randInt(10, 30) + (player.depth * 5);
+                this.state = 'IDLE'; 
+                this.detectionRange = 60;
+                this.attackRange = 5;
+                this.attackCooldown = 0;
+            }
+
+            update(dt) {
+                if (this.hp <= 0) return;
+
+                const dist = this.mesh.position.distanceTo(player.camera.position);
+
+                if (this.state === 'IDLE') {
+                    if (dist < this.detectionRange) this.state = 'CHASE';
+                }
+
+                if (this.state === 'CHASE') {
+                    if (dist > this.detectionRange * 1.5) {
+                        this.state = 'IDLE';
+                    } else {
+                        const dir = new THREE.Vector3().subVectors(player.camera.position, this.mesh.position);
+                        dir.y = 0; dir.normalize();
+
+                        const nextPos = this.mesh.position.clone().add(dir.clone().multiplyScalar(this.speed * dt));
+                        if (!dungeon.isSolid(nextPos.x, nextPos.z)) {
+                            this.mesh.position.add(dir.multiplyScalar(this.speed * dt));
+                        }
+                        
+                        this.mesh.lookAt(player.camera.position.x, this.mesh.position.y, player.camera.position.z);
+
+                        if (dist < this.attackRange) {
+                            if (this.attackCooldown <= 0) {
+                                player.takeDamage(this.damage);
+                                this.attackCooldown = 1.0;
+                                this.mesh.position.sub(dir.multiplyScalar(5));
+                            }
+                        }
+                    }
+                }
+
+                if (this.attackCooldown > 0) this.attackCooldown -= dt;
+                this.mesh.position.y = 3 + Math.sin(Date.now() * 0.005) * 0.5;
+            }
+
+            takeDamage(amount) {
+                this.hp -= amount;
+                createFloatingText(amount, this.mesh.position, '#fff');
+                this.mesh.material.emissive.setHex(0xffffff);
+                setTimeout(() => this.mesh.material.emissive.setHex(0x000000), 100);
+
+                if (this.hp <= 0) this.die();
+            }
+
+            die() {
+                scene.remove(this.mesh);
+                enemies = enemies.filter(e => e !== this);
+                player.gainXp(20 + player.depth * 5);
+                
+                // Drop Gold
+                player.gold += this.goldValue;
+                createFloatingText(`+${this.goldValue} G`, this.mesh.position, '#f1c40f');
+
+                for(let i=0; i<10; i++) particles.push(new Particle(this.mesh.position, 0x8e44ad));
+            }
+        }
+
+        class Projectile {
+            constructor(position, direction, isPlayer, stats) {
+                this.stats = stats || { damage: 10, speed: 80, color: 0xffff00, radius: 0.3 };
+                this.mesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(this.stats.radius || 0.3, 8, 8),
+                    new THREE.MeshBasicMaterial({ color: this.stats.color })
+                );
+                this.mesh.position.copy(position);
+                this.direction = direction;
+                this.speed = this.stats.speed;
+                this.life = 2.0;
+                this.isPlayer = isPlayer;
+                this.piercedEnemies = new Set(); // Track enemies hit by piercing shots
+                scene.add(this.mesh);
+            }
+
+            update(dt) {
+                this.life -= dt;
+                const move = this.direction.clone().multiplyScalar(this.speed * dt);
+                this.mesh.position.add(move);
+
+                if (dungeon.isSolid(this.mesh.position.x, this.mesh.position.z)) {
+                    this.explode();
+                    return false;
+                }
+
+                // --- Projectile vs Enemy Collision ---
+                if (this.isPlayer) {
+                    let isRemoved = false;
+                    
+                    for (let e of enemies) {
+                        // Using a simple distance check
+                        if (this.mesh.position.distanceTo(e.mesh.position) < 3.5) {
+                            
+                            // Skip if piercing and already hit this enemy
+                            if (this.stats.piercing && this.piercedEnemies.has(e)) continue;
+
+                            if (this.stats.explosive) {
+                                // Explosive: damage all enemies in a radius
+                                const explosionRadius = 10; 
+                                enemies.forEach(nearby => {
+                                    if (nearby.mesh.position.distanceTo(this.mesh.position) < explosionRadius) {
+                                        // Simple distance-based damage falloff can be added here
+                                        nearby.takeDamage(this.stats.damage); 
+                                    }
+                                });
+                                isRemoved = true;
+                                break; // Explosion ends the projectile's life
+                            } else {
+                                // Standard or Piercing hit
+                                e.takeDamage(this.stats.damage);
+
+                                if (this.stats.piercing) {
+                                    this.piercedEnemies.add(e);
+                                    // Piercing shot continues
+                                } else {
+                                    // Standard shot breaks (as requested by user)
+                                    isRemoved = true;
+                                    break; 
+                                }
+                            }
+                        }
+                    }
+
+                    if (isRemoved) {
+                        this.explode();
+                        return false;
+                    }
+                }
+                // --- End Collision ---
+
+
+                if (this.life <= 0) {
+                    scene.remove(this.mesh);
+                    return false;
+                }
+                return true;
+            }
+
+            explode() {
+                this.life = 0;
+                scene.remove(this.mesh);
+                // Particle count is higher for explosive shots
+                const count = this.stats.explosive ? 30 : 5;
+                for(let i=0; i<count; i++) particles.push(new Particle(this.mesh.position, this.stats.color));
+            }
+        }
+
+        class Particle {
+            constructor(pos, color) {
+                this.mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+                    new THREE.MeshBasicMaterial({ color: color })
+                );
+                this.mesh.position.copy(pos);
+                this.velocity = new THREE.Vector3(rng(-5,5), rng(-5,5), rng(-5,5));
+                this.life = 1.0;
+                scene.add(this.mesh);
+            }
+            update(dt) {
+                this.life -= dt;
+                this.velocity.y -= GRAVITY * dt * 0.5;
+                this.mesh.position.add(this.velocity.clone().multiplyScalar(dt));
+                this.mesh.rotation.x += dt * 5;
+                this.mesh.scale.setScalar(this.life);
+                
+                if(this.life <= 0) {
+                    scene.remove(this.mesh);
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        // --- Shop Functions ---
+        function toggleShop() {
+            if (isSaveMenuOpen) toggleSaveMenu(); // Close save menu if open
+            isShopOpen = !isShopOpen;
+            const shopPanel = document.getElementById('shop-panel');
+            
+            if (isShopOpen) {
+                // If the game is active (pointer locked), exit lock
+                if (isGameActive) {
+                     document.exitPointerLock();
+                }
+                shopPanel.style.display = 'block';
+                renderShop();
+            } else {
+                // If closing shop, hide UI.
+                shopPanel.style.display = 'none';
+                
+                // FIX: Use a tiny timeout to avoid the SecurityError race condition 
+                // that occurs when requesting the lock immediately after a concurrent exit.
+                if (document.pointerLockElement === null) {
+                    setTimeout(() => {
+                        try {
+                            document.body.requestPointerLock();
+                        } catch(e) {
+                            console.error("Pointer lock request failed (closing shop):", e.message);
+                        }
+                    }, 1);
+                }
+            }
+        }
+
+        function renderShop() {
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = '';
+
+            SHOP_ITEMS.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'shop-item';
+                
+                let purchased = false;
+                if(item.type === 'weapon' && player.ownedWeapons.includes(item.id)) purchased = true;
+                if(item.type === 'spell' && player.spells.includes(item.id)) purchased = true;
+
+                let btnText = purchased ? "OWNED" : `${item.price} G`;
+                let disabled = purchased || player.gold < item.price ? 'disabled' : '';
+                if(purchased) disabled = 'disabled';
+
+                el.innerHTML = `
+                    <div class="item-info">
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-desc">${item.desc}</span>
+                    </div>
+                    <button class="buy-btn" ${disabled} onclick="buyItem('${item.id}')">${btnText}</button>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        window.buyItem = function(id) {
+            const item = SHOP_ITEMS.find(i => i.id === id);
+            if (!item) return;
+
+            if (player.gold >= item.price) {
+                player.gold -= item.price;
+                
+                if (item.type === 'consumable') {
+                    if (id === 'potion_hp') player.hp = Math.min(player.hp + 50, player.maxHp);
+                    if (id === 'potion_mana') player.mana = Math.min(player.mana + 50, player.maxMana);
+                    showMessage(`Used ${item.name}`);
+                } else if (item.type === 'weapon') {
+                    player.ownedWeapons.push(id);
+                    player.equipWeapon(id);
+                } else if (item.type === 'spell') {
+                    player.spells.push(id);
+                    showMessage(`Learned ${item.name}`);
+                }
+
+                renderShop(); // Refresh UI
+                updateHUD();
+            }
+        };
+
+        document.getElementById('close-shop').addEventListener('click', toggleShop);
+        
+        // --- Save/Load Functions ---
+        
+        function toggleSaveMenu() {
+            if (!isAuthReady) {
+                showMessage("Authentication not ready. Please wait.");
+                return;
+            }
+            if (isShopOpen) toggleShop(); // Close shop menu if open
+            
+            isSaveMenuOpen = !isSaveMenuOpen;
+            const savePanel = document.getElementById('save-menu');
+
+            if (isSaveMenuOpen) {
+                 // If the game is active (pointer locked), exit lock
+                if (isGameActive) {
+                     document.exitPointerLock();
+                }
+                savePanel.style.display = 'block';
+                // Listen for save slots via onSnapshot when menu opens
+                setupSaveSlotListener();
+            } else {
+                savePanel.style.display = 'none';
+                
+                // FIX: Use a tiny timeout to avoid the SecurityError race condition 
+                // that occurs when requesting the lock immediately after a concurrent exit.
+                if (document.pointerLockElement === null) {
+                    setTimeout(() => {
+                        try {
+                            document.body.requestPointerLock();
+                        } catch(e) {
+                            console.error("Pointer lock request failed (closing save menu):", e.message);
+                        }
+                    }, 1);
+                }
+            }
+        }
+
+        async function setupSaveSlotListener() {
+            if (!userId || !db) return;
+            const q = query(getPrivateCollectionRef('save_slots'));
+            
+            // onSnapshot will keep the saveSlots array up-to-date in real-time
+            onSnapshot(q, (snapshot) => {
+                saveSlots = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                renderSaveSlots();
+            }, (error) => {
+                console.error("Error listening to save slots:", error);
+                document.getElementById('save-slots-container').innerHTML = '<p style="color: #e74c3c; text-align: center;">Error loading saves.</p>';
+            });
+        }
+
+        function renderSaveSlots() {
+            const container = document.getElementById('save-slots-container');
+            container.innerHTML = '';
+            
+            // Render existing saves
+            saveSlots.sort((a, b) => {
+                // Safely handle potentially null serverTimestamp() fields
+                const timeA = a.savedAt ? a.savedAt.toMillis() : 0;
+                const timeB = b.savedAt ? b.savedAt.toMillis() : 0;
+                return timeB - timeA;
+            }).forEach((slot, index) => {
+                // Safely get date or default to a loading state
+                const date = slot.savedAt ? slot.savedAt.toDate().toLocaleString() : 'Saving...';
+                
+                const el = document.createElement('div');
+                el.className = 'save-slot';
+                el.innerHTML = `
+                    <div class="slot-info">
+                        <div class="slot-title">Save Slot #${index + 1} (Depth ${slot.data.stats.depth})</div>
+                        Saved: ${date}
+                    </div>
+                    <button class="load-btn" onclick="loadGame('${slot.id}')" ${slot.savedAt ? '' : 'disabled'}>LOAD</button>
+                    <button class="save-btn" onclick="saveGame('${slot.id}', true)">OVERWRITE</button>
+                `;
+                container.appendChild(el);
+            });
+
+            // Add a new save slot option (if less than 5 saves)
+            if (saveSlots.length < 5) {
+                 const newSlotEl = document.createElement('div');
+                 newSlotEl.className = 'save-slot';
+                 newSlotEl.style.backgroundColor = '#1e331e';
+                 newSlotEl.innerHTML = `
+                     <div class="slot-info">
+                         <div class="slot-title" style="color: #2ecc71;">New Save Slot (${saveSlots.length + 1})</div>
+                         Current Progress: Level ${player.level}, Depth ${player.depth}
+                     </div>
+                     <div></div>
+                     <button class="save-btn" style="background: #2ecc71;" onclick="saveGame(crypto.randomUUID())">SAVE NEW</button>
+                 `;
+                 container.appendChild(newSlotEl);
+            }
+            
+            document.getElementById('user-id-display').innerText = `User ID: ${userId}`;
+        }
+
+        window.saveGame = async function(slotId, isOverwrite = false) {
+            if (!userId) {
+                showMessage("Cannot save: User not authenticated.");
+                return;
+            }
+
+            const dataToSave = player.serialize();
+
+            try {
+                // Save game data to Firestore
+                await setDoc(doc(getPrivateCollectionRef('save_slots'), slotId), {
+                    savedAt: serverTimestamp(),
+                    data: dataToSave
+                });
+                
+                showMessage(isOverwrite ? "Game Overwritten! (Check back in 1s)" : "Game Saved! (Check back in 1s)");
+            } catch (error) {
+                console.error("Error saving game:", error);
+                showMessage("SAVE FAILED! Check console for errors.");
+            }
+        };
+
+        window.loadGame = function(slotId) {
+            const slot = saveSlots.find(s => s.id === slotId);
+            if (!slot) {
+                showMessage("Error: Save slot not found.");
+                return;
+            }
+            if (!slot.savedAt) {
+                showMessage("Wait for the save operation to complete before loading.");
+                return;
+            }
+
+            // 1. Load Player State
+            player.deserialize(slot.data);
+            
+            // 2. Re-start the level to generate the dungeon structure
+            // Pass the loaded depth to ensure the dungeon size is correct
+            startLevel(player.depth, { pos: slot.data.pos, rot: slot.data.rot });
+            
+            // 3. Close menu and update HUD
+            toggleSaveMenu();
+            showMessage("Game Loaded!");
+            updateHUD();
+        };
+
+        document.getElementById('close-save-menu').addEventListener('click', toggleSaveMenu);
+
+        // --- Core Functions ---
+
+        async function initFirebase() {
+            if (!firebaseConfig.apiKey) {
+                console.warn("Firebase config not found. Running in local mode (no persistent save/load).");
+                return;
+            }
+            
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('debug');
+
+                // Sign in using the custom token or anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Wait for auth state to be established
+                await new Promise(resolve => {
+                    const unsubscribe = onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            isAuthReady = true;
+                            console.log("Firebase Auth Ready. User ID:", userId);
+                            resolve();
+                        } else {
+                            userId = null;
+                            isAuthReady = true;
+                            console.log("Firebase Auth Ready. Signed out/Anonymous.");
+                            resolve();
+                        }
+                        unsubscribe();
+                    });
+                });
+            } catch (error) {
+                console.error("Firebase Initialization Failed:", error);
+                document.getElementById('user-id-display').innerText = `Auth Failed: ${error.message}`;
+                isAuthReady = true; // Still allow the game to run locally
+            }
+        }
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            scene = new THREE.Scene();
+            // scene.fog = new THREE.FogExp2(0x000000, 0.03); // Removed fog for infinite draw distance
+
+            document.addEventListener('keydown', (e) => onKey(e, true));
+            document.addEventListener('keyup', (e) => onKey(e, false));
+            document.addEventListener('mousemove', onMouseMove);
+            
+            // --- FIX: Bind the pointer lock request directly to the blocker element's click event ---
+            document.getElementById('blocker').addEventListener('click', () => {
+                try {
+                    document.body.requestPointerLock();
+                } catch(e) {
+                    console.error("Pointer lock request failed (blocker click):", e.message);
+                }
+            });
+
+            // Bind mouse down only for shooting (after game is active)
+            document.addEventListener('mousedown', () => {
+                if(isGameActive && !isShopOpen && !isSaveMenuOpen) {
+                    player.shoot();
+                }
+            });
+            
+            // --- Centralized Pointer Lock State Management ---
+            document.addEventListener('pointerlockchange', () => {
+                const isLocked = document.pointerLockElement === document.body;
+                
+                // Update game activity based on lock status
+                isGameActive = isLocked;
+                
+                // Handle UI visibility
+                if (isLocked) {
+                    // If locked, hide blocker and menus 
+                    document.getElementById('blocker').style.display = 'none';
+                    document.getElementById('crosshair').style.display = 'block';
+                } else {
+                    document.getElementById('crosshair').style.display = 'none';
+                    // If unlocked, check if a menu caused the unlock (B or L was pressed)
+                    if (!isShopOpen && !isSaveMenuOpen) {
+                        // If no menu is open, the user must have pressed ESC. Show blocker.
+                        document.getElementById('blocker').style.display = 'flex';
+                    }
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if(player && player.camera) {
+                    player.camera.aspect = window.innerWidth / window.innerHeight;
+                    player.camera.updateProjectionMatrix();
+                }
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            initFirebase().then(startGame); // Start game only after Firebase is ready
+            animate();
+        }
+
+        function startGame() {
+            // Check if player exists (from a previous game state) and remove it if so
+            if (player && player.camera) scene.remove(player.camera);
+            player = new Player();
+            startLevel(1);
+        }
+
+        function startLevel(depth, playerSpawnOverride) {
+            if(dungeon && dungeon.mesh) {
+                scene.remove(dungeon.mesh);
+                scene.remove(dungeon.floorMesh);
+                scene.remove(dungeon.ceilMesh);
+                scene.remove(dungeon.portal);
+            }
+            enemies.forEach(e => scene.remove(e.mesh));
+            enemies = [];
+            projectiles.forEach(p => scene.remove(p.mesh));
+            projectiles = [];
+
+            player.depth = depth;
+            const size = 30 + (depth * 5); 
+            
+            // --- NEW: Generate Textures with Depth-based Color Variation ---
+            // Calculate hue based on depth for a rotating color palette
+            const hue = (depth * 45) % 360; 
+            const wallColor = `hsl(${hue}, 10%, 30%)`; // Desaturated dark walls
+            const floorColor = `hsl(${hue}, 5%, 15%)`; // Even darker floor
+            const ceilingColor = `hsl(0, 0%, 10%)`; // Always near black ceiling
+            
+            currentWallTexture = createProceduralTexture('wall', wallColor);
+            currentFloorTexture = createProceduralTexture('floor', floorColor);
+            currentCeilingTexture = createProceduralTexture('floor', ceilingColor);
+
+            dungeon = new Dungeon(size, size, depth, currentWallTexture, currentFloorTexture, currentCeilingTexture);
+            
+            // Set spawn point (either generated or loaded)
+            if (playerSpawnOverride) {
+                player.camera.position.set(playerSpawnOverride.pos.x, playerSpawnOverride.pos.y, playerSpawnOverride.pos.z);
+                player.camera.rotation.set(playerSpawnOverride.rot.x, playerSpawnOverride.rot.y, playerSpawnOverride.rot.z);
+            } else {
+                player.camera.position.copy(dungeon.spawnPoint);
+                player.camera.rotation.set(0,0,0);
+            }
+            
+            player.velocity.set(0,0,0);
+            
+            const enemyCount = 5 + depth * 3;
+            for(let i=0; i<enemyCount; i++) {
+                let placed = false;
+                while(!placed) {
+                    const ex = randInt(1, dungeon.width-1);
+                    const ey = randInt(1, dungeon.height-1);
+                    if(dungeon.grid[ey][ex] === 0 && Math.abs(ex*TILE_SIZE - dungeon.spawnPoint.x) > 50) {
+                        enemies.push(new Enemy(new THREE.Vector3(ex*TILE_SIZE + TILE_SIZE/2, 3, ey*TILE_SIZE + TILE_SIZE/2)));
+                        placed = true;
+                    }
+                }
+            }
+
+            showMessage(`DEPTH ${depth}`);
+            updateHUD();
+        }
+
+        function nextLevel() {
+            showMessage("LEVEL COMPLETE!");
+            isGameActive = false;
+            if (document.pointerLockElement === document.body) {
+                document.exitPointerLock();
+            }
+            setTimeout(() => {
+                startLevel(player.depth + 1);
+            }, 3000);
+        }
+
+
+        function gameOver() {
+            showMessage("YOU DIED");
+            isGameActive = false;
+            // Exit pointer lock on game over
+            if (document.pointerLockElement === document.body) {
+                document.exitPointerLock();
+            }
+            setTimeout(() => {
+                player = new Player(); 
+                startLevel(1);
+            }, 3000);
+        }
+
+        function onKey(e, down) {
+            const k = e.key.toLowerCase();
+
+            // Ignore input if a menu is open
+            if ((isShopOpen || isSaveMenuOpen) && down) {
+                if (k === 'b') toggleShop();
+                if (k === 'l') toggleSaveMenu();
+                // Prevent other keys from triggering game actions while menu is open
+                return;
+            }
+
+            if (k === 'w') keys.w = down;
+            if (k === 'a') keys.a = down;
+            if (k === 's') keys.s = down;
+            if (k === 'd') keys.d = down;
+            if (k === ' ') keys.space = down;
+            if (k === 'shift') keys.shift = down;
+            
+            if (down) {
+                if (k === 'b' && isGameActive) toggleShop(); // Only toggle shop if actively playing
+                if (k === 'l' && isGameActive) toggleSaveMenu(); // Only toggle save if actively playing
+                if (k === 'q' && isGameActive) player.castSpell('heal');
+                if (k === 'e' && isGameActive) player.castSpell('fireball');
+            }
+        }
+
+        function onMouseMove(e) {
+            // Check for both pointer lock AND menu status before allowing camera movement
+            if (!isGameActive || isShopOpen || isSaveMenuOpen) return;
+            const sensitivity = 0.002;
+            player.camera.rotation.y -= e.movementX * sensitivity;
+            player.camera.rotation.x -= e.movementY * sensitivity;
+            player.camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, player.camera.rotation.x));
+        }
+
+        function showMessage(text) {
+            const el = document.getElementById('message-area');
+            el.innerText = text;
+            el.style.opacity = 1;
+            setTimeout(() => el.style.opacity = 0, 3000);
+        }
+
+        function createFloatingText(text, pos, color) {
+            const div = document.createElement('div');
+            div.className = 'floating-text';
+            div.innerText = text;
+            div.style.color = color;
+            document.body.appendChild(div);
+
+            const tempV = pos.clone();
+            if (player && player.camera) { // Check before using camera
+                tempV.project(player.camera);
+                const x = (tempV.x * .5 + .5) * window.innerWidth;
+                const y = (tempV.y * -.5 + .5) * window.innerHeight;
+                div.style.left = x + 'px';
+                div.style.top = y + 'px';
+            }
+
+            setTimeout(() => div.remove(), 1000);
+        }
+
+        function updateHUD() {
+            if (!player) return; // Guard for HUD updates
+            document.getElementById('level-display').innerText = player.level;
+            document.getElementById('depth-display').innerText = player.depth;
+            document.getElementById('gold-display').innerText = player.gold;
+            document.getElementById('hp-text').innerText = `${Math.ceil(player.hp)}/${player.maxHp}`;
+            document.getElementById('hp-bar').style.width = (player.hp / player.maxHp * 100) + '%';
+            document.getElementById('mana-text').innerText = `${Math.ceil(player.mana)}/${player.maxMana}`;
+            document.getElementById('mana-bar').style.width = (player.mana / player.maxMana * 100) + '%';
+            document.getElementById('xp-bar').style.width = (player.xp / player.xpToLevel * 100) + '%';
+        }
+
+        function drawMinimap() {
+            if (!player || !dungeon) return; // Guard
+            const cvs = document.getElementById('minimap');
+            const ctx = cvs.getContext('2d');
+            const size = 150;
+            cvs.width = size; cvs.height = size;
+            
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0,0,size,size);
+            
+            const range = 10;
+            const tileSize = size / (range * 2);
+            
+            const px = Math.floor(player.camera.position.x / TILE_SIZE);
+            const py = Math.floor(player.camera.position.z / TILE_SIZE);
+
+            for(let y = py - range; y <= py + range; y++) {
+                for(let x = px - range; x <= px + range; x++) {
+                    if(y >= 0 && y < dungeon.height && x >= 0 && x < dungeon.width) {
+                        const val = dungeon.grid[y][x];
+                        const screenX = (x - (px - range)) * tileSize;
+                        const screenY = (y - (py - range)) * tileSize;
+                        
+                        if(val === 1) { ctx.fillStyle = "#444"; ctx.fillRect(screenX, screenY, tileSize, tileSize); } 
+                        else if (val === 0) { ctx.fillStyle = "#222"; ctx.fillRect(screenX, screenY, tileSize, tileSize); } 
+                        else if (val === 2) { ctx.fillStyle = "#0f0"; ctx.fillRect(screenX, screenY, tileSize, tileSize); }
+                    }
+                }
+            }
+            
+            ctx.fillStyle = "red";
+            ctx.beginPath(); ctx.arc(size/2, size/2, 3, 0, Math.PI*2); ctx.fill();
+            
+            ctx.fillStyle = "purple";
+            enemies.forEach(e => {
+                const ex = Math.floor(e.mesh.position.x / TILE_SIZE);
+                const ey = Math.floor(e.mesh.position.z / TILE_SIZE);
+                if (Math.abs(ex - px) <= range && Math.abs(ey - py) <= range) {
+                     const sx = (ex - (px - range)) * tileSize;
+                     const sy = (ey - (py - range)) * tileSize;
+                     ctx.fillRect(sx+2, sy+2, tileSize-4, tileSize-4);
+                }
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Safety check for player object initialization
+            if (!player || !player.camera) {
+                // If player hasn't been initialized yet, just return. 
+                // Renderer will handle the first frame with the default camera in init, but we rely on player.camera after startGame.
+                return;
+            } 
+            
+            const dt = Math.min(clock.getDelta(), 0.1); 
+
+            if(isGameActive) {
+                player.update(dt);
+                enemies.forEach(e => e.update(dt));
+                projectiles = projectiles.filter(p => p.update(dt));
+                particles = particles.filter(p => p.update(dt));
+
+                if(dungeon.portal) {
+                    dungeon.portal.rotation.y += dt;
+                    dungeon.portal.material.opacity = 0.5 + Math.sin(Date.now()*0.005)*0.2;
+                }
+                drawMinimap();
+            }
+
+            renderer.render(scene, player.camera);
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+
+</html></body><html>
