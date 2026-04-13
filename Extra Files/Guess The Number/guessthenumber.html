@@ -1,0 +1,219 @@
+<!doctype html><html><head></head><body><!DOCTYPE html>
+<html lang="en">
+
+
+<!-- This is a file by the Elite Composite Of Games--> 
+<!-- All rights go to the owner of this game. -->
+<!-- For ECOG go to https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
+
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Guess the Number</title>
+	<style>
+		/* Basic CSS for styling the game */
+		body {
+			font-family: Arial, sans-serif;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+			background-color: #f4f4f9;
+			color: #333;
+			text-align: center;
+		}
+
+
+		.container {
+			background-color: #ffffff;
+			padding: 30px 40px;
+			border-radius: 10px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+			width: 90%;
+			max-width: 400px;
+		}
+
+
+		h1 {
+			color: #007bff;
+			margin-bottom: 20px;
+		}
+
+
+		input[type="number"] {
+			padding: 10px;
+			margin: 10px 0;
+			border: 2px solid #ccc;
+			border-radius: 5px;
+			width: 100px;
+			text-align: center;
+			font-size: 1.1em;
+		}
+
+
+		button {
+			background-color: #28a745;
+			color: white;
+			padding: 10px 20px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 1em;
+			transition: background-color 0.3s ease;
+		}
+
+
+		button:hover {
+			background-color: #218838;
+		}
+
+
+		#message {
+			margin-top: 20px;
+			font-size: 1.2em;
+			font-weight: bold;
+			min-height: 30px;
+			/* To prevent layout shift */
+		}
+
+
+		.new-game-btn {
+			background-color: #dc3545;
+			margin-top: 15px;
+			display: none;
+			/* Hidden until the game ends */
+		}
+
+
+		.new-game-btn:hover {
+			background-color: #c82333;
+		}
+	</style>
+</head>
+
+
+<body>
+
+
+	<div class="container">
+		<h1>Guess the Number</h1>
+		<p>I'm thinking of a number between **1 and 100**.</p>
+		<p>You have **10 attempts**.</p>
+
+
+		<label for="guessInput">Enter your guess:</label>
+		<br>
+		<input type="number" id="guessInput" min="1" max="100" required>
+		<br>
+		<button onclick="checkGuess()">Submit Guess</button>
+
+
+		<div id="message"></div>
+
+
+		<button class="new-game-btn" onclick="newGame()">Play Again</button>
+
+
+	</div>
+
+
+	<script>
+		// Game Logic (JavaScript)
+        let randomNumber = Math.floor(Math.random() * 100) + 1;
+        let guesses = 0;
+        const maxGuesses = 10;
+        let gameActive = true;
+
+
+        const guessInput = document.getElementById('guessInput');
+        const messageDisplay = document.getElementById('message');
+        const newGameButton = document.querySelector('.new-game-btn');
+
+
+        // Function to check the user's guess
+        function checkGuess() {
+            if (!gameActive) {
+                messageDisplay.textContent = "Game over! Click 'Play Again' to start a new game.";
+                return;
+            }
+
+
+            // Get the value from the input and ensure it's a number
+            const userGuess = parseInt(guessInput.value);
+
+
+            // Basic input validation
+            if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+                messageDisplay.textContent = 'Please enter a valid number between 1 and 100.';
+                guessInput.value = ''; // Clear the input
+                return;
+            }
+            
+            // Increment the number of guesses
+            guesses++;
+            let remainingGuesses = maxGuesses - guesses;
+            let message = `Remaining Guesses: ${remainingGuesses}.`;
+
+
+            if (userGuess === randomNumber) {
+                // User wins!
+                messageDisplay.textContent = `🥳 YOU DID IT! Dang, you must pull the huzz. You guessed the number (${randomNumber}) in ${guesses} attempts!`;
+                endGame(true);
+            } else if (guesses >= maxGuesses) {
+                // User runs out of guesses
+                messageDisplay.textContent = `😭 BRO YOU ARE SUCH A POOPY DIAPER. The number was ${randomNumber}.`;
+                endGame(false);
+            } else if (userGuess < randomNumber) {
+                // Guess is too low
+                messageDisplay.textContent = `Too low! Try again. ${message}`;
+            } else {
+                // Guess is too high
+                messageDisplay.textContent = `Too high! Try again. ${message}`;
+            }
+
+
+            // Clear the input field for the next guess
+            guessInput.value = '';
+            // Put the focus back on the input field
+            guessInput.focus();
+        }
+
+
+        // Function to handle the end of the game
+        function endGame(won) {
+            gameActive = false;
+            guessInput.disabled = true; // Disable input
+            document.querySelector('button[onclick="checkGuess()"]').disabled = true; // Disable submit button
+            newGameButton.style.display = 'block'; // Show the "Play Again" button
+        }
+
+
+        // Function to reset the game
+        function newGame() {
+            // Reset variables
+            randomNumber = Math.floor(Math.random() * 100) + 1;
+            guesses = 0;
+            gameActive = true;
+
+
+            // Reset UI elements
+            guessInput.disabled = false;
+            document.querySelector('button[onclick="checkGuess()"]').disabled = false;
+            guessInput.value = '';
+            messageDisplay.textContent = '';
+            newGameButton.style.display = 'none';
+            guessInput.focus();
+        }
+
+
+        // Start a new game when the page loads
+        newGame();
+	</script>
+
+
+</body>
+
+
+</html></body><html>
