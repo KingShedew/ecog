@@ -1,0 +1,1744 @@
+<!doctype html><html><head></head><body><!DOCTYPE html>
+<html lang="en">
+
+<!-- This is a file by the Elite Composite Of Games-->
+<!-- All rights go to the owner of this game. -->
+<!-- For ECOG go to https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
+
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Infinite Siege - Major Content Update v3.0</title>
+	<style>
+		:root {
+			--bg-color: #0d1117;
+			--panel-bg: #161b22;
+			--text-color: #c9d1d9;
+			--accent-blue: #58a6ff;
+			--accent-red: #f85149;
+			--accent-green: #3fb950;
+			--accent-gold: #d29922;
+			--glass-panel: rgba(22, 27, 34, 0.95);
+		}
+
+		body {
+			background-color: var(--bg-color);
+			color: var(--text-color);
+			font-family: 'Courier New', Courier, monospace;
+			margin: 0;
+			display: flex;
+			height: 100vh;
+			overflow: hidden;
+			user-select: none;
+		}
+
+		/* --- UI LAYOUT --- */
+		#ui-panel {
+			width: 320px;
+			background-color: var(--panel-bg);
+			padding: 20px;
+			display: flex;
+			flex-direction: column;
+			border-right: 1px solid #30363d;
+			box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+			overflow-y: auto;
+			z-index: 10;
+		}
+
+		h1 {
+			font-size: 1.5rem;
+			margin-top: 0;
+			color: var(--accent-blue);
+			text-transform: uppercase;
+			letter-spacing: 2px;
+		}
+
+		h2 {
+			font-size: 1rem;
+			border-bottom: 1px solid #30363d;
+			padding-bottom: 5px;
+			margin-top: 20px;
+			color: var(--accent-gold);
+		}
+
+		.stat-row {
+			display: flex;
+			justify-content: space-between;
+			margin-bottom: 5px;
+			font-size: 0.9rem;
+		}
+
+		.stat-val {
+			font-weight: bold;
+		}
+
+		.resource-group {
+			margin-bottom: 15px;
+			padding: 10px;
+			background: rgba(255, 255, 255, 0.05);
+			border-radius: 4px;
+		}
+
+		.resource-group .stat-row:last-child {
+			margin-bottom: 0;
+		}
+
+		/* --- BUILD BUTTONS --- */
+		.build-grid {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 10px;
+		}
+
+		.build-btn {
+			background: #21262d;
+			border: 1px solid #30363d;
+			color: var(--text-color);
+			padding: 10px;
+			cursor: pointer;
+			text-align: left;
+			font-size: 0.8rem;
+			transition: all 0.2s;
+			position: relative;
+			border-radius: 4px;
+		}
+
+		.build-btn:hover {
+			background: #30363d;
+			border-color: var(--accent-blue);
+		}
+
+		.build-btn.active {
+			background: #1f6feb;
+			border-color: var(--accent-blue);
+			color: white;
+		}
+
+		.build-cost {
+			display: block;
+			font-size: 0.7rem;
+			opacity: 0.7;
+			margin-top: 5px;
+		}
+
+		/* Lock Icon */
+		.lock-icon {
+			position: absolute;
+			top: 5px;
+			right: 5px;
+			font-size: 1rem;
+			color: #ff7b72;
+		}
+
+		#phase-controls {
+			margin-top: auto;
+			padding-top: 20px;
+			border-top: 1px solid #30363d;
+			display: flex;
+			gap: 5px;
+			flex-direction: column;
+		}
+
+		.action-btn {
+			width: 100%;
+			padding: 15px;
+			font-family: inherit;
+			font-weight: bold;
+			font-size: 1rem;
+			cursor: pointer;
+			border: none;
+			margin-bottom: 5px;
+			text-transform: uppercase;
+			border-radius: 4px;
+		}
+
+		#start-wave-btn {
+			background-color: var(--accent-red);
+			color: white;
+		}
+
+		#start-wave-btn:disabled {
+			background-color: #30363d;
+			cursor: not-allowed;
+			opacity: 0.5;
+		}
+
+		.secondary-btn {
+			background-color: #21262d;
+			color: var(--accent-blue);
+			border: 1px solid #30363d;
+			padding: 10px;
+			font-size: 0.8rem;
+			border-radius: 4px;
+		}
+
+		.secondary-btn:hover {
+			background-color: #30363d;
+		}
+
+		/* --- CANVAS --- */
+		#game-container {
+			flex-grow: 1;
+			position: relative;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background-image: radial-gradient(circle at center, #161b22 0%, #0d1117 100%);
+		}
+
+		canvas {
+			box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+			cursor: crosshair;
+			border: 1px solid #30363d;
+		}
+
+		/* --- MENUS & OVERLAYS --- */
+		.overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.9);
+			display: none;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 100;
+			color: white;
+		}
+
+		.overlay.active {
+			display: flex;
+		}
+
+		.menu-box {
+			background: var(--panel-bg);
+			padding: 40px;
+			border: 1px solid var(--accent-blue);
+			box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+			text-align: center;
+			max-width: 900px;
+			width: 90%;
+			border-radius: 8px;
+		}
+
+		.menu-title {
+			font-size: 3rem;
+			color: var(--accent-blue);
+			margin-bottom: 10px;
+			letter-spacing: 5px;
+			text-transform: uppercase;
+		}
+
+		.menu-subtitle {
+			color: #8b949e;
+			margin-bottom: 30px;
+			font-size: 1.2rem;
+		}
+
+		.menu-btn {
+			display: block;
+			width: 100%;
+			padding: 15px;
+			margin: 10px 0;
+			background: transparent;
+			border: 1px solid var(--accent-blue);
+			color: var(--accent-blue);
+			font-family: inherit;
+			font-size: 1.2rem;
+			cursor: pointer;
+			transition: 0.2s;
+			border-radius: 4px;
+		}
+
+		.menu-btn:hover {
+			background: var(--accent-blue);
+			color: var(--bg-color);
+		}
+
+		/* Shop Grid */
+		.shop-section {
+			margin-top: 30px;
+		}
+
+		.shop-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 15px;
+			margin-bottom: 20px;
+			text-align: left;
+		}
+
+		.shop-item {
+			border: 1px solid #30363d;
+			padding: 10px;
+			cursor: pointer;
+			position: relative;
+			transition: 0.2s;
+			border-radius: 4px;
+		}
+
+		.shop-item:hover {
+			border-color: var(--accent-green);
+		}
+
+		.shop-item.owned {
+			border-color: var(--accent-gold);
+			opacity: 0.7;
+			cursor: default;
+			background: #21262d;
+		}
+
+		.shop-item.cant-afford {
+			opacity: 0.5;
+			border-color: #ff7b72;
+			cursor: not-allowed;
+		}
+
+		.shop-cost {
+			font-weight: bold;
+			display: block;
+			margin-top: 5px;
+		}
+
+		.cost-tp {
+			color: var(--accent-green);
+		}
+
+		.cost-alloy {
+			color: var(--accent-red);
+		}
+
+		/* Save Slots */
+		.save-slot {
+			border: 1px solid #30363d;
+			padding: 15px;
+			margin: 10px 0;
+			cursor: pointer;
+			text-align: left;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			border-radius: 4px;
+		}
+
+		.save-slot:hover {
+			background: #21262d;
+			border-color: var(--accent-blue);
+		}
+
+		.slot-info {
+			font-size: 0.9rem;
+			color: #8b949e;
+		}
+
+		.delete-save {
+			color: var(--accent-red);
+			padding: 5px 10px;
+			border: 1px solid var(--accent-red);
+			cursor: pointer;
+			margin-left: 10px;
+			border-radius: 4px;
+		}
+
+		.delete-save:hover {
+			background: var(--accent-red);
+			color: white;
+		}
+
+		#tp-display {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			font-size: 1.5rem;
+			color: var(--accent-green);
+			font-weight: bold;
+			text-shadow: 0 0 10px rgba(63, 185, 80, 0.5);
+			background: rgba(0, 0, 0, 0.5);
+			padding: 5px 10px;
+			border-radius: 4px;
+		}
+
+		#alloy-info {
+			font-size: 0.9rem;
+			color: var(--accent-red);
+			font-weight: bold;
+			background: rgba(248, 81, 73, 0.1);
+			padding: 3px 6px;
+			border-radius: 4px;
+			display: inline-block;
+		}
+	</style>
+</head>
+
+<body>
+
+	<!-- UI PANEL (GAME HUD) -->
+	<div id="ui-panel" style="display:none;">
+		<h1>Infinite Siege</h1>
+
+		<div class="resource-group">
+			<div class="stat-row"><span style="color:#a5d6ff">⚙️ Ore:</span>
+				<span class="stat-val" id="res-ore">0</span></div>
+			<div class="stat-row"><span style="color:#d29922">⚡ Power:</span>
+				<span class="stat-val" id="res-power">0</span></div>
+			<div class="stat-row"><span style="color:#ff7b72">⛓️ Alloy:</span>
+				<span class="stat-val" id="res-alloy">0</span></div>
+		</div>
+
+		<div class="stat-row"><span>Wave:</span> <span class="stat-val" id="wave-num">1</span></div>
+		<div class="stat-row"><span>Threat:</span> <span class="stat-val" id="threat-lvl">1.0x</span></div>
+		<div class="stat-row"><span>TP Multiplier:</span> <span class="stat-val" id="tp-multiplier">1.0x</span></div>
+		<div class="stat-row"><span>Integrity:</span> <span class="stat-val" id="base-hp">100%</span></div>
+		<div class="stat-row"><span>Power Cap:</span> <span class="stat-val" id="power-cap">100</span></div>
+
+
+		<h2>Production & Storage</h2>
+		<div class="build-grid" id="prod-grid">
+			<!-- Injected via JS based on unlocks -->
+		</div>
+
+		<h2>Defense Grid</h2>
+		<div class="build-grid" id="def-grid">
+			<!-- Injected via JS based on unlocks -->
+		</div>
+
+		<h2>Support & Utility</h2>
+		<div class="build-grid" id="utility-grid">
+			<!-- Injected via JS based on unlocks -->
+		</div>
+
+
+		<div style="margin-top:10px; font-size: 0.8rem; color: #8b949e;">
+			R-Click: Demolish | ESC: Menu
+		</div>
+
+		<div id="phase-controls">
+			<button id="start-wave-btn" class="action-btn" onclick="game.startWave()">Initiate Siege</button>
+			<button class="secondary-btn" onclick="app.showMenu()">Save & Exit</button>
+		</div>
+	</div>
+
+	<!-- GAME CONTAINER -->
+	<div id="game-container">
+		<canvas id="gameCanvas" width="800" height="800"></canvas>
+		<div id="tp-display">TP: 0</div>
+	</div>
+
+	<!-- MAIN MENU OVERLAY -->
+	<div id="main-menu" class="overlay active">
+		<div class="menu-box">
+			<div class="menu-title">Infinite Siege</div>
+			<div class="menu-subtitle">Tactical Base Defense Simulator</div>
+			<button class="menu-btn" onclick="app.openSaveSlots()">Play / Load</button>
+			<button class="menu-btn" onclick="app.openShop()">Tech Shop</button>
+			<div style="margin-top: 20px; font-size: 0.9rem; color: #8b949e;">Tech Points (TP):
+				<span id="menu-tp">0</span> | <span id="alloy-info">Alloy: <span id="menu-alloy">0</span></span></div>
+		</div>
+	</div>
+
+	<!-- SAVE SLOTS OVERLAY -->
+	<div id="save-menu" class="overlay">
+		<div class="menu-box">
+			<h2>Select Slot</h2>
+			<div id="slots-container">
+				<!-- Injected via JS -->
+			</div>
+			<button class="menu-btn" onclick="app.showMenu()" style="margin-top:20px;">Back</button>
+		</div>
+	</div>
+
+	<!-- SHOP OVERLAY -->
+	<div id="shop-menu" class="overlay">
+		<div class="menu-box" style="max-width: 900px;">
+			<h2>Tech Requisition (Blueprints)</h2>
+			<p>Spend Tech Points (TP) to permanently unlock Blueprints.</p>
+			<div class="shop-section">
+				<div class="shop-grid" id="tp-shop-container">
+					<!-- TP ITEMS Injected via JS -->
+				</div>
+			</div>
+
+			<h2 style="color: var(--accent-red);">Strategic Upgrades (Alloy)</h2>
+			<p>Spend Alloy on persistent upgrades that enhance future runs.</p>
+			<div class="shop-section">
+				<div class="shop-grid" id="alloy-shop-container">
+					<!-- ALLOY ITEMS Injected via JS -->
+				</div>
+			</div>
+
+			<button class="menu-btn" onclick="app.showMenu()">Return to Menu</button>
+		</div>
+	</div>
+
+	<!-- GAME OVER OVERLAY -->
+	<div id="game-over-modal" class="overlay">
+		<div class="menu-box">
+			<h1 style="color: var(--accent-red); font-size: 3rem; margin:0;">SECTOR LOST</h1>
+			<p>Base destroyed.</p>
+			<p>Highest Threat: <span id="final-score">0</span></p>
+			<p style="color: var(--accent-green)">Tech Points Earned: +<span id="earned-tp">0</span> (Base Multiplier:
+				<span id="final-tp-mult">1.0x</span>)</p>
+			<button class="menu-btn" onclick="app.showMenu()">Return to Menu</button>
+		</div>
+	</div>
+
+	<script>
+		/**
+ * INFINITE SIEGE - v3.0 (Range Mechanic, Enemy Fix, Major Content Expansion)
+ * Fix: Stabilized enemy attack/collision logic against structures.
+ * New: Range visualization and implementation.
+ * New: 7 new buildings and 10 new enemy archetypes.
+ */
+
+// --- CONFIGURATION ---
+const CELL_SIZE = 40;
+const GRID_W = 20;
+const GRID_H = 20;
+const INITIAL_POWER_CAP = 100;
+const ALLOY_CONVERTER_POWER_COST = 50; 
+const GAME_TICK_RATE = 60; // Ticks per second
+
+// Colors
+const C_GRID = '#21262d';
+const C_BASE = '#1f6feb';
+const C_ENEMY = '#f85149';
+const C_SHIELD = '#00ffff';
+
+// --- DATA: BUILDINGS & SHOP ---
+const BUILDING_TYPES = {
+    'wall': { name: 'Titan Wall', group: 'defense', cost: {ore: 20, power: 0, alloy: 0}, hp: 500, color: '#565656', logic: 'none', desc: 'High HP Blockade' },
+    
+    // Production & Storage (Per Siege)
+    'drill': { name: 'Miner Drill', group: 'resource', cost: {ore: 50, power: 0, alloy: 0}, hp: 100, color: '#a5d6ff', logic: 'produce_siege', product: 'ore', amount: 50, desc: '+50 Ore/Siege' },
+    'reactor': { name: 'Power Reactor', group: 'resource', cost: {ore: 100, power: 0, alloy: 0}, hp: 200, color: '#d29922', logic: 'produce_siege', product: 'power', amount: 20, desc: '+20 Power/Siege' },
+    'foundry': { name: 'Alloy Converter', group: 'resource', cost: {ore: 150, power: 50, alloy: 0}, hp: 300, color: '#ff7b72', logic: 'convert_alloy', amount: ALLOY_CONVERTER_POWER_COST, desc: `Consumes ${ALLOY_CONVERTER_POWER_COST} Pwr to make Alloy` },
+    'mine': { name: 'Deep Mine', group: 'resource', cost: {ore: 200, power: 50, alloy: 0}, hp: 300, color: '#888', logic: 'produce_tick', product: 'ore', amount: 0.05, desc: '+0.05 Ore/Tick' },
+    'storage_power': { name: 'Capacitor', group: 'resource', cost: {ore: 50, power: 50, alloy: 0}, hp: 200, color: '#d29922', logic: 'storage', product: 'power_cap', amount: 50, desc: '+50 Power Capacity' },
+    
+    // Defense
+    'turret_basic': { name: 'Sentinel Gun', group: 'defense', cost: {ore: 50, power: 10, alloy: 0}, hp: 150, color: '#90a4ae', range: 3, damage: 5, fireRate: 8, projColor: '#f78166', logic: 'shoot', desc: 'Basic kinetic turret' },
+    'turret_kinetic': { name: 'Gatling', group: 'defense', cost: {ore: 100, power: 20, alloy: 0}, hp: 200, color: '#3fb950', range: 4, damage: 10, fireRate: 5, projColor: '#ffff00', logic: 'shoot', desc: 'Rapid fire' },
+    'turret_energy': { name: 'Laser', group: 'defense', cost: {ore: 0, power: 50, alloy: 50}, hp: 150, color: '#f78166', range: 6, damage: 40, fireRate: 60, projColor: '#ff0000', logic: 'shoot', desc: 'Heavy Damage' },
+    'turret_utility': { name: 'Stasis', group: 'defense', cost: {ore: 50, power: 50, alloy: 50}, hp: 150, color: '#58a6ff', range: 3, damage: 2, fireRate: 5, projColor: '#00ffff', logic: 'shoot', statusEffect: 'slow', desc: 'Slows Enemies' },
+    'turret_sniper': { name: 'Railgun', group: 'defense', cost: {ore: 200, power: 100, alloy: 100}, hp: 250, color: '#c9d1d9', range: 10, damage: 100, fireRate: 120, projColor: '#fff', logic: 'shoot', desc: 'Longest range, massive damage' },
+    'turret_flak': { name: 'Flak Cannon', group: 'defense', cost: {ore: 150, power: 75, alloy: 0}, hp: 200, color: '#ff9bce', range: 5, damage: 15, fireRate: 30, projColor: '#f78166', logic: 'shoot_aoe', desc: 'Area damage turret' },
+    'turret_pulser': { name: 'EMP Pulser', group: 'defense', cost: {ore: 50, power: 100, alloy: 100}, hp: 150, color: '#00ffff', range: 2, damage: 1, fireRate: 90, projColor: '#00ffff', logic: 'shoot_aoe', statusEffect: 'stun', desc: 'Short range AoE stun' },
+
+    // Support
+    'support_repair': { name: 'Repair Drone', group: 'utility', cost: {ore: 50, power: 50, alloy: 0}, hp: 150, color: '#3fb950', logic: 'repair', healRate: 20, desc: 'Heals adjacent structures' },
+    'support_shield': { name: 'Shield Link', group: 'utility', cost: {ore: 100, power: 100, alloy: 50}, hp: 250, color: C_SHIELD, logic: 'shield_buff', desc: 'Gives adjacent buildings a shield' },
+
+    // Builder Obstacle (not player buildable)
+    'obstacle': { name: 'Obstacle', group: 'utility', cost: {ore: 0, power: 0, alloy: 0}, hp: 150, color: '#888', logic: 'none', desc: 'Temporary Builder Obstacle' },
+};
+
+// Items available in the Tech Point (TP) Shop
+const TP_SHOP_ITEMS = [
+    { id: 'turret_kinetic', name: 'Gatling Blueprint', cost: 100, type: 'tp' },
+    { id: 'turret_energy', name: 'Laser Blueprint', cost: 300, type: 'tp' },
+    { id: 'turret_utility', name: 'Stasis Blueprint', cost: 500, type: 'tp' },
+    { id: 'mine', name: 'Deep Mine Blueprint', cost: 150, type: 'tp' },
+    { id: 'storage_power', name: 'Capacitor Blueprint', cost: 50, type: 'tp' },
+    { id: 'support_repair', name: 'Repair Blueprint', cost: 100, type: 'tp' },
+    { id: 'turret_sniper', name: 'Railgun Blueprint', cost: 750, type: 'tp' },
+    { id: 'turret_flak', name: 'Flak Cannon Blueprint', cost: 400, type: 'tp' },
+    { id: 'support_shield', name: 'Shield Link Blueprint', cost: 500, type: 'tp' },
+    { id: 'turret_pulser', name: 'EMP Pulser Blueprint', cost: 600, type: 'tp' },
+];
+
+// Items available in the Alloy Shop
+const ALLOY_MODIFIER_ITEMS = [
+    { id: 'tp_mult_1', name: 'TP Multiplier I', cost: 50, type: 'alloy', bonus: 0.1, desc: 'Permanently increases TP gain by +10%' },
+    { id: 'tp_mult_2', name: 'TP Multiplier II', cost: 150, type: 'alloy', bonus: 0.2, desc: 'Permanently increases TP gain by +20%' },
+    { id: 'ore_convert', name: 'Ore Converter', cost: 100, type: 'alloy', bonus: 1, desc: 'Converts all unused Ore to Power (1:1) after every siege.' }
+];
+
+// Defaults (Always unlocked)
+const DEFAULT_UNLOCKS = ['wall', 'drill', 'reactor', 'foundry', 'turret_basic']; 
+
+// --- APP CONTROLLER (Global State) ---
+const app = {
+    state: 'MENU', 
+    globalData: {
+        tp: 0, // Tech Points
+        alloy: 0, // Global Alloy storage
+        unlocks: [...DEFAULT_UNLOCKS],
+        purchasedModifiers: [], // Stores IDs of purchased ALLOY modifiers
+    },
+    currentSlot: 0,
+    
+    init: function() {
+        this.loadGlobalData();
+        this.renderShop();
+        this.updateTPDisplay();
+        game.init();
+    },
+
+    loadGlobalData: function() {
+        const d = localStorage.getItem('is_global_v3'); // Updated key for new version
+        if (d) {
+            this.globalData = JSON.parse(d);
+            
+            // Ensure compatibility with old saves and ensure defaults
+            if (typeof this.globalData.alloy === 'undefined') this.globalData.alloy = 0;
+            if (typeof this.globalData.purchasedModifiers === 'undefined') this.globalData.purchasedModifiers = [];
+
+            DEFAULT_UNLOCKS.forEach(u => {
+                if(!this.globalData.unlocks.includes(u)) this.globalData.unlocks.push(u);
+            });
+        }
+    },
+
+    saveGlobalData: function() {
+        localStorage.setItem('is_global_v3', JSON.stringify(this.globalData));
+        this.updateTPDisplay();
+    },
+
+    getTPMultiplier: function() {
+        let mult = 1.0;
+        this.globalData.purchasedModifiers.forEach(id => {
+            const item = ALLOY_MODIFIER_ITEMS.find(i => i.id === id);
+            if (item && item.id.startsWith('tp_mult')) {
+                mult += item.bonus;
+            }
+        });
+        return mult;
+    },
+
+    updateTPDisplay: function() {
+        document.getElementById('tp-display').innerText = "TP: " + this.globalData.tp;
+        document.getElementById('menu-tp').innerText = this.globalData.tp;
+        document.getElementById('menu-alloy').innerText = this.globalData.alloy;
+        
+        if (app.state === 'PLAYING') {
+             document.getElementById('tp-multiplier').innerText = this.getTPMultiplier().toFixed(1) + 'x';
+        }
+    },
+
+    showMenu: function() {
+        if (this.state === 'PLAYING') {
+            game.saveGame(this.currentSlot);
+        }
+        this.state = 'MENU';
+        game.running = false;
+        document.getElementById('ui-panel').style.display = 'none';
+        document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
+        document.getElementById('main-menu').classList.add('active');
+        this.updateTPDisplay();
+    },
+
+    openShop: function() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('shop-menu').classList.add('active');
+        this.renderShop();
+    },
+
+    buyItem: function(id, cost, type) {
+        let isPurchased;
+        let currency;
+        
+        if (type === 'tp') {
+            isPurchased = this.globalData.unlocks.includes(id);
+            currency = this.globalData.tp;
+        } else { // alloy
+            isPurchased = this.globalData.purchasedModifiers.includes(id);
+            currency = this.globalData.alloy;
+        }
+
+        if (isPurchased) return;
+        
+        if (currency >= cost) {
+            if (type === 'tp') {
+                this.globalData.tp -= cost;
+                this.globalData.unlocks.push(id);
+                game.buildUI(); // Update in-game build menu immediately
+            } else { // alloy
+                this.globalData.alloy -= cost;
+                this.globalData.purchasedModifiers.push(id);
+            }
+            this.saveGlobalData();
+            this.renderShop();
+        }
+    },
+
+    renderShop: function() {
+        this.updateTPDisplay(); // Update TP/Alloy displayed in shop menu
+        
+        const renderSection = (containerId, items, currencyType) => {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            items.forEach(item => {
+                let owned = currencyType === 'tp' ? this.globalData.unlocks.includes(item.id) : this.globalData.purchasedModifiers.includes(item.id);
+                const canAfford = currencyType === 'tp' ? this.globalData.tp >= item.cost : this.globalData.alloy >= item.cost;
+                const costClass = currencyType === 'tp' ? 'cost-tp' : 'cost-alloy';
+                
+                const div = document.createElement('div');
+                div.className = `shop-item ${owned ? 'owned' : ''} ${!canAfford && !owned ? 'cant-afford' : ''}`;
+                
+                // Get building description if available, otherwise use modifier desc
+                const desc = BUILDING_TYPES[item.id]?.desc || item.desc || 'Permanent Upgrade';
+                
+                div.innerHTML = `
+                    <div style="font-weight:bold">${item.name}</div>
+                    <div style="font-size:0.7rem; color:#8b949e;">${desc}</div>
+                    <div class="shop-cost ${costClass}">${owned ? 'PURCHASED' : item.cost + (currencyType === 'tp' ? ' TP' : ' Alloy')}</div>
+                `;
+                if (!owned && canAfford) {
+                    div.onclick = () => this.buyItem(item.id, item.cost, currencyType);
+                }
+                container.appendChild(div);
+            });
+        };
+
+        renderSection('tp-shop-container', TP_SHOP_ITEMS, 'tp');
+        renderSection('alloy-shop-container', ALLOY_MODIFIER_ITEMS, 'alloy');
+    },
+
+    openSaveSlots: function() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('save-menu').classList.add('active');
+        const container = document.getElementById('slots-container');
+        container.innerHTML = '';
+
+        for(let i=1; i<=5; i++) {
+            const saveKey = `is_save_slot_${i}`;
+            const dataStr = localStorage.getItem(saveKey);
+            let info = "Empty Slot";
+            
+            if (dataStr) {
+                try {
+                    const data = JSON.parse(dataStr);
+                    info = `Wave ${data.wave} - Threat ${data.threatLevel.toFixed(1)}x`;
+                } catch(e) { info = "Corrupted Data"; }
+            }
+
+            const div = document.createElement('div');
+            div.className = 'save-slot';
+            div.innerHTML = `
+                <div>
+                    <strong>SLOT ${i}</strong><br>
+                    <span class="slot-info">${info}</span>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    ${dataStr ? `<button class="delete-save" onclick="event.stopPropagation(); app.deleteSave(${i})">DEL</button>` : ''}
+                </div>
+            `;
+            div.onclick = () => this.startGame(i, !!dataStr);
+            container.appendChild(div);
+        }
+    },
+
+    deleteSave: function(slot) {
+        if(confirm(`Delete Save Slot ${slot}?`)) {
+            localStorage.removeItem(`is_save_slot_${slot}`);
+            this.openSaveSlots();
+        }
+    },
+
+    startGame: function(slot, isLoad) {
+        this.currentSlot = slot;
+        this.state = 'PLAYING';
+        document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
+        document.getElementById('ui-panel').style.display = 'flex';
+        
+        game.running = true;
+        game.buildUI(); // Rebuild buttons based on unlocks
+        
+        if (isLoad) {
+            game.loadGame(slot);
+        } else {
+            game.resetGame(); // New game
+        }
+        game.loop();
+    }
+};
+
+// --- GAME ENGINE ---
+const game = {
+    canvas: null,
+    ctx: null,
+    ticks: 0,
+    running: false,
+    
+    // Game State Data
+    phase: 'BUILD',
+    wave: 1,
+    threatLevel: 1.0,
+    powerCapacity: INITIAL_POWER_CAP,
+    resources: { ore: 300, power: 100, alloy: 0 }, 
+    grid: [],
+    enemies: [],
+    projectiles: [],
+    particles: [],
+    baseStats: { hp: 1000, maxHp: 1000, x: 10, y: 10 },
+    
+    selectedBuilding: null,
+    
+    // Wave Data
+    enemiesToSpawn: 0,
+    enemiesSpawned: 0,
+
+    init: function() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        this.canvas.addEventListener('mousedown', (e) => this.handleInput(e));
+        this.canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            
+            const pos = this.getGridPos(e);
+            if(this.isValid(pos.x, pos.y)) {
+                const t = this.grid[pos.x][pos.y];
+                if(t.building && !t.baseCoords && t.building.typeId !== 'obstacle') {
+                     // Refund 50% ore
+                     const cost = BUILDING_TYPES[t.building.typeId].cost;
+                     this.resources.ore += Math.floor(cost.ore/2);
+                     t.building = null;
+                     this.createParticles(pos.x*CELL_SIZE+20, pos.y*CELL_SIZE+20, 5, '#fff');
+                     this.updatePowerCapacity(); // Recalculate if storage was destroyed
+                     this.updateUI();
+                }
+            }
+            // Clear selection after demolish attempt
+            this.selectedBuilding = null;
+            document.querySelectorAll('.build-btn').forEach(b => b.classList.remove('active'));
+        });
+    },
+
+    buildUI: function() {
+        // Generate buttons based on Global Unlocks
+        const makeBtn = (id) => {
+            if (!app.globalData.unlocks.includes(id) || id === 'obstacle') return '';
+            const b = BUILDING_TYPES[id];
+            let costStr = `${b.cost.ore > 0 ? b.cost.ore + ' Ore ' : ''}${b.cost.power > 0 ? b.cost.power + ' Pwr ' : ''}${b.cost.alloy > 0 ? b.cost.alloy + ' Aly ' : ''}`;
+            
+            let extraInfo = '';
+            if (b.range) extraInfo += `Range: ${b.range} | `;
+            if (b.damage) extraInfo += `Dmg: ${b.damage}`;
+            
+            return `<button class="build-btn" onclick="game.select('${id}')">
+                <b>${b.name}</b>
+                <span class="build-cost">${costStr}</span>
+                <span class="build-cost" style="color:#8b949e; margin-top:0;">${extraInfo}</span>
+                <span class="build-cost" style="color:#8b949e">${b.desc}</span>
+            </button>`;
+        };
+
+        const prod = document.getElementById('prod-grid');
+        const def = document.getElementById('def-grid');
+        const util = document.getElementById('utility-grid');
+        
+        prod.innerHTML = def.innerHTML = util.innerHTML = '';
+
+        // Filter and inject buttons into respective grids
+        Object.keys(BUILDING_TYPES).forEach(id => {
+            const b = BUILDING_TYPES[id];
+            if (app.globalData.unlocks.includes(id)) {
+                if (b.group === 'resource') {
+                    prod.innerHTML += makeBtn(id);
+                } else if (b.group === 'defense') {
+                    def.innerHTML += makeBtn(id);
+                } else if (b.group === 'utility') {
+                    util.innerHTML += makeBtn(id);
+                }
+            }
+        });
+    },
+
+    select: function(id) {
+        this.selectedBuilding = id;
+        document.querySelectorAll('.build-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.build-btn[onclick="game.select('${id}')"]`).classList.add('active');
+    },
+
+    getGridPos: function(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+            x: Math.floor((e.clientX - rect.left) / CELL_SIZE),
+            y: Math.floor((e.clientY - rect.top) / CELL_SIZE)
+        };
+    },
+
+    handleInput: function(e) {
+        if (!this.running || app.state !== 'PLAYING') return;
+        const pos = this.getGridPos(e);
+        if (!this.isValid(pos.x, pos.y)) return;
+
+        if (this.selectedBuilding) {
+            const tile = this.grid[pos.x][pos.y];
+            const stats = BUILDING_TYPES[this.selectedBuilding];
+
+            if (!tile.baseCoords && !tile.building) {
+                if (this.checkCost(stats.cost)) {
+                    this.payCost(stats.cost);
+                    const initialHp = stats.hp;
+                    tile.building = { 
+                        x: pos.x, y: pos.y, // Store grid coords on building for easier use
+                        typeId: this.selectedBuilding, 
+                        hp: initialHp, 
+                        cooldown: 0, 
+                        maxHp: initialHp,
+                        shieldHp: 0, // Used for shield buffing
+                    };
+                    this.createParticles(pos.x*CELL_SIZE+20, pos.y*CELL_SIZE+20, 8, '#fff');
+                    this.updatePowerCapacity(); // Recalculate capacity after placing storage
+                    this.updateUI();
+                }
+            }
+        }
+    },
+
+    checkCost: function(cost) {
+        return this.resources.ore >= cost.ore && 
+               this.resources.power >= cost.power && 
+               this.resources.alloy >= cost.alloy;
+    },
+
+    payCost: function(cost) {
+        this.resources.ore -= cost.ore;
+        this.resources.power -= cost.power;
+        this.resources.alloy -= cost.alloy;
+    },
+    
+    updatePowerCapacity: function() {
+        let capacity = INITIAL_POWER_CAP;
+        for(let x=0; x<GRID_W; x++) {
+            for(let y=0; y<GRID_H; y++) {
+                const b = this.grid[x][y].building;
+                if(b) {
+                    const s = BUILDING_TYPES[b.typeId];
+                    if (s && s.logic === 'storage') {
+                        capacity += s.amount;
+                    }
+                }
+            }
+        }
+        this.powerCapacity = capacity;
+        this.resources.power = Math.min(this.resources.power, this.powerCapacity);
+    },
+
+    resetGame: function() {
+        this.phase = 'BUILD';
+        this.wave = 1;
+        this.threatLevel = 1.0;
+        this.powerCapacity = INITIAL_POWER_CAP;
+        this.resources = { ore: 300, power: 100, alloy: 0 };
+        this.enemies = [];
+        this.projectiles = [];
+        this.particles = [];
+        this.baseStats.hp = this.baseStats.maxHp;
+        
+        // Init Grid
+        this.grid = [];
+        for(let x=0; x<GRID_W; x++) {
+            this.grid[x] = [];
+            for(let y=0; y<GRID_H; y++) {
+                this.grid[x][y] = { x, y, building: null, baseCoords: (x===10 && y===10) };
+            }
+        }
+        this.grid[10][10].building = { typeId: 'base', hp: this.baseStats.maxHp, maxHp: this.baseStats.maxHp };
+        
+        document.getElementById('start-wave-btn').disabled = false;
+        document.getElementById('start-wave-btn').innerText = "Initiate Siege";
+        this.updatePowerCapacity();
+        this.updateUI();
+    },
+
+    saveGame: function(slot) {
+        const data = {
+            wave: this.wave,
+            threatLevel: this.threatLevel,
+            resources: this.resources,
+            baseHp: this.baseStats.hp,
+            // Only save necessary building data
+            grid: this.grid.map(col => col.map(t => t.building ? {id: t.building.typeId, hp: t.building.hp, shieldHp: t.building.shieldHp || 0} : null))
+        };
+        localStorage.setItem(`is_save_slot_${slot}`, JSON.stringify(data));
+    },
+
+    loadGame: function(slot) {
+        const str = localStorage.getItem(`is_save_slot_${slot}`);
+        if (!str) return this.resetGame();
+        
+        const data = JSON.parse(str);
+        this.wave = data.wave;
+        this.threatLevel = data.threatLevel;
+        this.resources = data.resources;
+        // Important: Load Alloy from global data, not save slot.
+        this.resources.alloy = app.globalData.alloy; 
+
+        this.baseStats.hp = data.baseHp;
+        this.phase = 'BUILD';
+        this.enemies = [];
+        this.projectiles = [];
+        this.particles = [];
+        
+        this.grid = [];
+        for(let x=0; x<GRID_W; x++) {
+            this.grid[x] = [];
+            for(let y=0; y<GRID_H; y++) {
+                const savedB = data.grid[x][y];
+                const tile = { x, y, building: null, baseCoords: (x===10 && y===10) };
+                if (savedB) {
+                    if (BUILDING_TYPES[savedB.id] || savedB.id === 'base') {
+                        tile.building = { 
+                            x, y,
+                            typeId: savedB.id, 
+                            hp: savedB.hp, 
+                            cooldown: 0,
+                            maxHp: savedB.id === 'base' ? this.baseStats.maxHp : BUILDING_TYPES[savedB.id].hp,
+                            shieldHp: savedB.shieldHp || 0,
+                        };
+                    }
+                }
+                this.grid[x][y] = tile;
+            }
+        }
+        this.grid[10][10].building.hp = this.baseStats.hp; // Update base HP from loaded data
+        this.updatePowerCapacity(); // Recalculate capacity based on loaded buildings
+        this.updateUI();
+        document.getElementById('start-wave-btn').disabled = false;
+        document.getElementById('start-wave-btn').innerText = "Initiate Siege";
+    },
+
+    startWave: function() {
+        if(this.phase === 'BUILD') {
+            this.phase = 'DEFENSE';
+            this.enemiesToSpawn = 5 + Math.floor(this.wave * 2.5);
+            if (this.wave % 3 === 0) this.threatLevel += 0.5;
+            if (this.wave % 5 === 0) this.enemiesToSpawn = 1; // Boss wave
+            
+            this.enemiesSpawned = 0;
+            
+            // Activate all shields on support_shield buildings
+            this.applyShieldBuffs();
+
+            document.getElementById('start-wave-btn').disabled = true;
+            document.getElementById('start-wave-btn').innerText = "WAVE ACTIVE";
+        }
+    },
+
+    // New: Handle production and resource transfer
+    generateProduction: function() {
+        // Step 1: Production (Siege End)
+        for(let x=0; x<GRID_W; x++) {
+            for(let y=0; y<GRID_H; y++) {
+                const b = this.grid[x][y].building;
+                if(b) {
+                    const s = BUILDING_TYPES[b.typeId];
+                    if (s) { 
+                        if(s.logic === 'produce_siege') {
+                            this.resources[s.product] += s.amount;
+                        }
+                        // Alloy Converter: Consumes Power to make Alloy
+                        if(s.logic === 'convert_alloy' && this.resources.power >= s.amount) {
+                            this.resources.power -= s.amount;
+                            this.resources.alloy++;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Step 2: Global Modifiers (Ore Conversion)
+        if (app.globalData.purchasedModifiers.includes('ore_convert')) {
+            // Convert Ore to Power 1:1
+            this.resources.power += this.resources.ore;
+            this.resources.ore = 0;
+        }
+
+        // Apply capacity limit
+        this.resources.power = Math.min(this.resources.power, this.powerCapacity);
+
+        // Move generated alloy to global storage
+        app.globalData.alloy += this.resources.alloy;
+        this.resources.alloy = 0; // Reset in-game alloy (it's purely transient)
+    },
+
+    endWave: function() {
+        this.generateProduction(); 
+        
+        this.phase = 'BUILD';
+        
+        // Award TP, incorporating the new global multiplier
+        const tpMultiplier = app.getTPMultiplier();
+        const tpGain = Math.floor(this.wave * 2 * this.threatLevel * tpMultiplier);
+        app.globalData.tp += tpGain;
+        app.saveGlobalData();
+        
+        this.wave++;
+        document.getElementById('start-wave-btn').disabled = false;
+        document.getElementById('start-wave-btn').innerText = "Initiate Siege";
+        this.updateUI();
+        this.saveGame(app.currentSlot); // Auto-save
+    },
+
+    gameOver: function() {
+        this.running = false;
+        
+        const tpMultiplier = app.getTPMultiplier();
+        const bonusTP = Math.floor(this.wave * 5 * tpMultiplier);
+        app.globalData.tp += bonusTP;
+        app.saveGlobalData();
+
+        localStorage.removeItem(`is_save_slot_${app.currentSlot}`);
+        
+        document.getElementById('final-score').innerText = this.threatLevel.toFixed(1) + "x";
+        document.getElementById('earned-tp').innerText = bonusTP;
+        document.getElementById('final-tp-mult').innerText = tpMultiplier.toFixed(1) + "x";
+        
+        document.getElementById('game-over-modal').classList.add('active');
+    },
+    
+    // --- CORE GAME LOOP LOGIC ---
+    loop: function() {
+        if (!this.running) return;
+        this.update();
+        this.draw();
+        this.ticks++;
+        requestAnimationFrame(() => this.loop());
+    },
+
+    update: function() {
+        if (this.ticks % 10 === 0) this.updateUI();
+
+        // Tick-based production (Mine)
+        for(let x=0; x<GRID_W; x++) {
+            for(let y=0; y<GRID_H; y++) {
+                const b = this.grid[x][y].building;
+                if(b) {
+                    const s = BUILDING_TYPES[b.typeId];
+                    if (s && s.logic === 'produce_tick' && this.resources[s.product] < this.powerCapacity) {
+                        this.resources[s.product] += s.amount;
+                    }
+                    if (s && s.logic === 'repair' && this.ticks % 60 === 0) { // Repair every second
+                        this.repairAdjacent(x, y, s.healRate);
+                    }
+                }
+            }
+        }
+        this.resources.ore = Math.floor(this.resources.ore * 10) / 10; // Keep ore clean
+
+        // Spawning
+        if (this.phase === 'DEFENSE') {
+            const spawnInterval = this.wave % 5 === 0 ? 300 : 80; 
+            if (this.ticks % spawnInterval === 0 && this.enemiesSpawned < this.enemiesToSpawn) {
+                this.spawnEnemy();
+            }
+            if (this.enemiesSpawned >= this.enemiesToSpawn && this.enemies.length === 0) {
+                this.endWave();
+            }
+        }
+
+        // Turrets & Defenses
+        this.updateTurrets();
+        
+        // Enemies
+        this.updateEnemies();
+
+        // Projectiles
+        this.updateProjectiles();
+        
+        // Particles
+        for(let i=this.particles.length-1; i>=0; i--) {
+            this.particles[i].life--;
+            this.particles[i].x += this.particles[i].vx;
+            this.particles[i].y += this.particles[i].vy;
+            if(this.particles[i].life <= 0) this.particles.splice(i,1);
+        }
+
+        if (this.baseStats.hp <= 0) this.gameOver();
+    },
+
+    // --- SUB-UPDATE FUNCTIONS ---
+
+    applyShieldBuffs: function() {
+        for(let x=0; x<GRID_W; x++) {
+            for(let y=0; y<GRID_H; y++) {
+                const s = this.grid[x][y].building;
+                if(s && BUILDING_TYPES[s.typeId].logic === 'shield_buff') {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            if (dx === 0 && dy === 0) continue;
+                            const tx = x + dx;
+                            const ty = y + dy;
+                            if (this.isValid(tx, ty)) {
+                                const t = this.grid[tx][ty].building;
+                                if (t && t.typeId !== 'base' && t.typeId !== s.typeId) {
+                                    // Set shield HP to 10% of max HP
+                                    t.shieldHp = Math.floor(t.maxHp * 0.15); 
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    repairAdjacent: function(x, y, healRate) {
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx === 0 && dy === 0) continue;
+                const tx = x + dx;
+                const ty = y + dy;
+                if (this.isValid(tx, ty)) {
+                    const t = this.grid[tx][ty].building;
+                    if (t && t.typeId !== 'base' && t.hp < t.maxHp) {
+                        t.hp = Math.min(t.maxHp, t.hp + healRate / GAME_TICK_RATE); // Heal per tick
+                    }
+                }
+            }
+        }
+    },
+
+    updateTurrets: function() {
+        for(let x=0; x<GRID_W; x++) {
+            for(let y=0; y<GRID_H; y++) {
+                const t = this.grid[x][y];
+                if(t.building) {
+                    const stats = BUILDING_TYPES[t.building.typeId];
+                    if (stats && (stats.logic && stats.logic.startsWith('shoot'))) {
+                        if (this.phase === 'DEFENSE' && t.building.cooldown <= 0) {
+                            const rangePx = stats.range * CELL_SIZE;
+                            const center = {x: x*CELL_SIZE+20, y: y*CELL_SIZE+20};
+                            
+                            // Target closest non-flying enemy first, then flying
+                            let target = this.enemies.find(e => !e.isFlying && Math.hypot(e.x-center.x, e.y-center.y) <= rangePx);
+                            if (!target) {
+                                target = this.enemies.find(e => Math.hypot(e.x-center.x, e.y-center.y) <= rangePx);
+                            }
+
+                            if (target) {
+                                this.projectiles.push({
+                                    x: center.x, y: center.y, 
+                                    target: target, 
+                                    dmg: stats.damage, 
+                                    color: stats.projColor, 
+                                    status: stats.statusEffect,
+                                    isAoE: stats.logic==='shoot_aoe',
+                                    active: true,
+                                    aoeRadius: stats.logic==='shoot_aoe' ? (stats.range * CELL_SIZE * 0.3) : 0,
+                                });
+                                t.building.cooldown = stats.fireRate;
+                            }
+                        }
+                        if (t.building.cooldown > 0) t.building.cooldown--;
+                    }
+                }
+            }
+        }
+    },
+
+    updateEnemies: function() {
+        for(let i=this.enemies.length-1; i>=0; i--) {
+            const e = this.enemies[i];
+            const target = {x: this.baseStats.x*CELL_SIZE+20, y: this.baseStats.y*CELL_SIZE+20};
+            
+            let spd = e.speed;
+            if(e.slowed > 0) { spd *= 0.5; e.slowed--; }
+            if(e.stunned > 0) { spd = 0; e.stunned--; }
+            
+            const dx = target.x - e.x;
+            const dy = target.y - e.y;
+            const dist = Math.hypot(dx, dy);
+            
+            const gx = Math.floor(e.x/CELL_SIZE);
+            const gy = Math.floor(e.y/CELL_SIZE);
+            
+            let stopped = false;
+
+            // Teleporter logic
+            if (e.type === 'teleporter' && e.teleportCooldown-- <= 0) {
+                const angle = Math.random() * Math.PI * 2;
+                const distJump = 4 * CELL_SIZE;
+                e.x = target.x + Math.cos(angle) * distJump;
+                e.y = target.y + Math.sin(angle) * distJump;
+                e.teleportCooldown = 300; // 5 seconds
+                this.createParticles(e.x, e.y, 10, '#d2a8ff');
+            }
+
+            // 1. Attack Structure (if not the base)
+            if(this.isValid(gx, gy) && !e.isFlying) {
+                const t = this.grid[gx][gy];
+                // Check if adjacent to a player-built structure or the base
+                if (t.building && e.type !== 'turret_enemy') {
+                    // Attack logic: damage is applied to the closest adjacent non-base building
+                    let targetBuilding = null;
+                    if (t.building.typeId !== 'base') {
+                        targetBuilding = t.building;
+                    } else {
+                        // If on the base tile, check for an adjacent wall/building to attack first
+                        for (let dx = -1; dx <= 1; dx++) {
+                            for (let dy = -1; dy <= 1; dy++) {
+                                if (dx === 0 && dy === 0) continue;
+                                const tx = gx + dx;
+                                const ty = gy + dy;
+                                if (this.isValid(tx, ty) && this.grid[tx][ty].building && this.grid[tx][ty].building.typeId !== 'base') {
+                                    targetBuilding = this.grid[tx][ty].building;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (targetBuilding) {
+                        const damagePerTick = e.damage * this.threatLevel / GAME_TICK_RATE;
+                        
+                        // Apply damage to shield first
+                        if(targetBuilding.shieldHp > 0) {
+                            targetBuilding.shieldHp -= damagePerTick;
+                            if(targetBuilding.shieldHp < 0) {
+                                targetBuilding.hp += targetBuilding.shieldHp; // Transfer excess damage
+                                targetBuilding.shieldHp = 0;
+                            }
+                        } else {
+                            targetBuilding.hp -= damagePerTick;
+                        }
+
+                        if(targetBuilding.hp <= 0) {
+                            this.grid[targetBuilding.x][targetBuilding.y].building = null;
+                            this.createParticles(targetBuilding.x*CELL_SIZE+20, targetBuilding.y*CELL_SIZE+20, 10, '#555');
+                            this.updatePowerCapacity(); // Recalculate capacity if a storage unit was destroyed
+                        }
+                        spd = 0; // Stop movement to attack
+                        stopped = true;
+                    }
+                }
+            }
+
+
+            // 2. Movement (if not stopped by structure)
+            if (!stopped && !e.stunned) {
+                if (dist > 5) {
+                    e.x += (dx/dist) * spd;
+                    e.y += (dy/dist) * spd;
+                } else {
+                    // 3. Hit Base (if reached center)
+                    // Bomber logic: Detonate on impact
+                    if(e.type === 'bomber') {
+                        this.baseStats.hp -= (e.damage * this.threatLevel * 5); // Huge base damage
+                        this.createParticles(e.x, e.y, 30, '#ff0000');
+                    } else {
+                        this.baseStats.hp -= (e.damage * this.threatLevel); 
+                        this.createParticles(e.x, e.y, 10, C_BASE);
+                    }
+                    this.grid[10][10].building.hp = this.baseStats.hp; // Update base building HP
+                    e.hp = 0; // Enemy is destroyed after hitting the base
+                }
+            }
+            
+            // Shield logic
+            if (e.hasShield > 0) e.hasShield--;
+            
+            // Check for death
+            if (e.hp <= 0) {
+                if (e.type === 'splitter') {
+                    // Spawn two smaller enemies
+                    this.enemies.push(this.createEnemy('grunt', e.x+5, e.y, this.threatLevel * 0.5));
+                    this.enemies.push(this.createEnemy('grunt', e.x-5, e.y, this.threatLevel * 0.5));
+                }
+                
+                this.enemies.splice(i, 1);
+            }
+        }
+
+        // Enemy Turrets: Static, fires at base
+        if (this.phase === 'DEFENSE') {
+            this.enemies.filter(e => e.type === 'turret_enemy').forEach(t => {
+                if (t.attackCooldown-- <= 0) {
+                    this.baseStats.hp -= (30 * this.threatLevel); // High fixed damage to base
+                    this.grid[10][10].building.hp = this.baseStats.hp; // Update base building HP
+                    this.createParticles(t.x, t.y, 5, '#ff0000');
+                    t.attackCooldown = 180; // Fire every 3 seconds
+                }
+            });
+        }
+    },
+
+    updateProjectiles: function() {
+        for(let i=this.projectiles.length-1; i>=0; i--) {
+            const p = this.projectiles[i];
+            
+            // Projectile is invalid if target is dead or no longer exists
+            if (!p.target || p.target.hp <= 0 || p.target.type === 'turret_enemy') { 
+                p.active = false; 
+            } else {
+                const dx = p.target.x - p.x;
+                const dy = p.target.y - p.y;
+                const d = Math.hypot(dx, dy);
+                
+                if (d < 10) {
+                    // Hit!
+                    if (p.isAoE) {
+                        this.applyAoEDamage(p.x, p.y, p.aoeRadius, p.dmg, p.status);
+                    } else {
+                        this.applyDamageToEnemy(p.target, p.dmg, p.status);
+                    }
+                    p.active = false;
+                } else {
+                    p.x += (dx/d) * 15; // Projectile speed
+                    p.y += (dy/d) * 15;
+                }
+            }
+            if(!p.active) this.projectiles.splice(i,1);
+        }
+    },
+
+    applyDamageToEnemy: function(e, dmg, status) {
+        if(e.hasShield > 0) {
+            e.hasShield -= dmg;
+            if(e.hasShield < 0) {
+                e.hp += e.hasShield; // Transfer excess damage
+                e.hasShield = 0;
+            }
+        } else {
+            e.hp -= dmg;
+        }
+
+        if(status === 'slow') e.slowed = 60;
+        if(status === 'stun') e.stunned = 30; // 0.5 second stun
+
+        if(e.hp <= 0) {
+            this.resources.ore += Math.floor(e.value);
+            this.createParticles(e.x, e.y, 8, e.color);
+        }
+    },
+
+    applyAoEDamage: function(x, y, radius, dmg, status) {
+        this.createParticles(x, y, 15, '#fff'); // Explosion effect
+        this.enemies.forEach(e => {
+            if (e.type !== 'turret_enemy') {
+                const d = Math.hypot(e.x - x, e.y - y);
+                if (d <= radius) {
+                    // Damage falls off based on distance
+                    const distanceFactor = 1 - (d / radius);
+                    const finalDmg = dmg * distanceFactor;
+                    this.applyDamageToEnemy(e, finalDmg, status);
+                }
+            }
+        });
+    },
+    
+    // --- ENEMY MANAGEMENT ---
+
+    createEnemy: function(type, x, y, mult) {
+        let e = {
+            type: type,
+            maxHp: 50 * mult, hp: 50 * mult,
+            speed: 1.5, radius: 10, value: 5*mult, // Resource value
+            slowed: 0, stunned: 0, damage: 60, attackCooldown: 0, // Damage per tick
+            isFlying: false, hasShield: 0, teleportCooldown: 0
+        };
+
+        // Archetype stats
+        if (type === 'grunt') { e.color = C_ENEMY; }
+        else if (type === 'speeder') { e.maxHp *= 0.6; e.speed *= 2.0; e.color = '#ff9bce'; e.radius = 8; e.value = 8*mult; e.damage = 40; }
+        else if (type === 'turret_enemy') { e.maxHp *= 1.5; e.speed = 0; e.color = '#555'; e.radius = 12; e.value = 15*mult; e.damage = 0; e.attackCooldown = 180; } // Static, indirect damage
+        else if (type === 'builder') { e.maxHp *= 1.5; e.speed *= 0.8; e.color = '#d2a8ff'; e.radius = 12; e.value = 12*mult; e.damage = 80; } // Siege unit
+        else if (type === 'cyborg') { e.maxHp *= 2.5; e.speed *= 0.8; e.color = '#3fb950'; e.radius = 15; e.value = 20*mult; e.damage = 100; } // Tank/Heavy Damage
+        else if (type === 'tank') { e.maxHp *= 5; e.speed = 0.5; e.color = '#00008b'; e.radius = 18; e.value = 30*mult; e.damage = 120; }
+        else if (type === 'bomber') { e.maxHp *= 1; e.speed = 1.8; e.color = '#ff8c00'; e.radius = 10; e.value = 10*mult; e.damage = 50; } // Suicide unit
+        else if (type === 'flyer') { e.maxHp *= 1.2; e.speed = 2.0; e.color = '#800080'; e.radius = 10; e.value = 15*mult; e.isFlying = true; e.damage = 70; } // Ignores walls
+        else if (type === 'teleporter') { e.maxHp *= 1.5; e.speed = 1.0; e.color = '#00ffff'; e.radius = 12; e.value = 25*mult; e.damage = 90; e.teleportCooldown = 300; }
+        else if (type === 'shielded') { e.maxHp *= 1.5; e.speed = 1.2; e.color = '#006400'; e.radius = 14; e.value = 20*mult; e.damage = 90; e.hasShield = 180; } // 3 second shield
+        else if (type === 'splitter') { e.maxHp *= 3; e.speed = 0.8; e.color = '#ff69b4'; e.radius = 16; e.value = 35*mult; e.damage = 100; } // Splits into two
+        else if (type === 'phantom') { e.maxHp *= 0.5; e.speed = 3.0; e.color = '#9932cc'; e.radius = 8; e.value = 10*mult; e.damage = 50; } // Fast rush
+        else if (type === 'the_cube') { e.maxHp *= 20; e.speed = 1.0; e.color = '#00ffff'; e.radius = 30; e.value = 100*mult; e.damage = 300; } // Boss
+
+        e.x = x;
+        e.y = y;
+
+        return e;
+    },
+
+    spawnEnemy: function() {
+        const enemyPool = ['grunt', 'speeder', 'turret_enemy', 'builder', 'cyborg', 'tank', 'bomber', 'flyer', 'teleporter', 'shielded', 'splitter', 'phantom'];
+        let type;
+        
+        if (this.wave % 5 === 0) {
+            type = 'the_cube';
+        } else {
+            // Select enemy based on wave progression (increasing complexity)
+            let available = enemyPool.filter((_, i) => i < Math.min(enemyPool.length, this.wave + 3));
+            type = available[Math.floor(Math.random() * available.length)];
+        }
+        
+        // Position
+        const edge = Math.floor(Math.random()*4);
+        let x, y;
+        if(edge===0) { x = Math.random()*GRID_W*CELL_SIZE; y = 0; }
+        else if(edge===1) { x = GRID_W*CELL_SIZE; y = Math.random()*GRID_H*CELL_SIZE; }
+        else if(edge===2) { x = Math.random()*GRID_W*CELL_SIZE; y = GRID_H*CELL_SIZE; }
+        else { x = 0; y = Math.random()*GRID_H*CELL_SIZE; }
+
+        const newEnemy = this.createEnemy(type, x, y, this.threatLevel);
+        this.enemies.push(newEnemy);
+        this.enemiesSpawned++;
+    },
+
+    // --- RENDERING ---
+
+    draw: function() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Draw grid and buildings
+        for(let x=0; x<GRID_W; x++) {
+            for(let y=0; y<GRID_H; y++) {
+                const px = x*CELL_SIZE;
+                const py = y*CELL_SIZE;
+                
+                // Grid
+                this.ctx.strokeStyle = '#30363d';
+                this.ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
+
+                const tile = this.grid[x][y];
+
+                if(tile.baseCoords) this.drawBase(px, py);
+                else if(tile.building) this.drawBuilding(px, py, tile.building);
+            }
+        }
+        
+        // Draw Range Visualization for Selected Turret
+        if (this.selectedBuilding) {
+            const stats = BUILDING_TYPES[this.selectedBuilding];
+            if (stats && stats.range) {
+                 const rangePx = stats.range * CELL_SIZE;
+                 
+                 // Highlight the cell
+                 const mousePos = this.getGridPos({clientX: this.canvas.mouseX, clientY: this.canvas.mouseY});
+                 const cx = mousePos.x * CELL_SIZE + CELL_SIZE/2;
+                 const cy = mousePos.y * CELL_SIZE + CELL_SIZE/2;
+
+                 this.ctx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+                 this.ctx.strokeStyle = 'rgba(88, 166, 255, 0.8)';
+                 this.ctx.lineWidth = 2;
+
+                 this.ctx.beginPath();
+                 this.ctx.arc(cx, cy, rangePx, 0, Math.PI * 2);
+                 this.ctx.fill();
+                 this.ctx.stroke();
+            }
+        }
+
+
+        // Entities
+        this.enemies.forEach(e => this.drawEnemy(e));
+        this.projectiles.forEach(p => {
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath(); this.ctx.arc(p.x, p.y, p.isAoE ? 6 : 4, 0, Math.PI*2); this.ctx.fill();
+        });
+        this.particles.forEach(p => {
+            this.ctx.fillStyle = p.color; this.ctx.globalAlpha = p.life/20;
+            this.ctx.beginPath(); this.ctx.arc(p.x, p.y, 2, 0, Math.PI*2); this.ctx.fill();
+            this.ctx.globalAlpha = 1;
+        });
+    },
+
+    drawBuilding: function(x, y, b) {
+        const cx = x + CELL_SIZE/2;
+        const cy = y + CELL_SIZE/2;
+        const type = b.typeId;
+        const stats = BUILDING_TYPES[type];
+        
+        this.ctx.fillStyle = stats.color;
+        
+        // Draw the main structure based on type
+        if (type === 'wall' || type === 'obstacle') {
+            this.ctx.fillRect(x+2, y+2, CELL_SIZE-4, CELL_SIZE-4);
+        } else if (type.includes('drill') || type.includes('mine')) {
+            this.ctx.save();
+            this.ctx.translate(cx, cy);
+            this.ctx.rotate(this.ticks * 0.2);
+            this.ctx.fillRect(-10, -10, 20, 20);
+            this.ctx.fillStyle = '#fff';
+            this.ctx.beginPath(); this.ctx.moveTo(-5, -5); this.ctx.lineTo(5, -5); this.ctx.lineTo(0, 10); this.ctx.fill();
+            this.ctx.restore();
+        } else if (type === 'reactor' || type === 'storage_power') {
+            const pulse = 1 - Math.abs(Math.sin(this.ticks * 0.05)) * 0.5;
+            this.ctx.fillStyle = `rgba(210, 153, 34, ${pulse})`;
+            this.ctx.beginPath(); this.ctx.arc(cx, cy, 15, 0, Math.PI*2); this.ctx.fill();
+            this.ctx.fillStyle = '#000';
+            this.ctx.fillRect(cx-5, cy-5, 10, 10);
+        } else if (type === 'foundry') {
+            this.ctx.fillStyle = '#ff7b72';
+            this.ctx.fillRect(x+5, y+5, CELL_SIZE-10, CELL_SIZE-10);
+        } else if (type === 'support_repair') {
+            this.ctx.fillStyle = '#3fb950';
+            this.ctx.fillRect(x+10, y+10, CELL_SIZE-20, CELL_SIZE-20);
+            this.ctx.fillStyle = '#fff';
+            this.ctx.fillRect(cx-2, cy-8, 4, 16);
+            this.ctx.fillRect(cx-8, cy-2, 16, 4);
+        } else if (type === 'support_shield') {
+            this.ctx.fillStyle = C_SHIELD;
+            this.ctx.beginPath(); this.ctx.arc(cx, cy, 10, 0, Math.PI*2); this.ctx.fill();
+            this.ctx.strokeStyle = C_SHIELD;
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath(); this.ctx.arc(cx, cy, 15, 0, Math.PI*2); this.ctx.stroke();
+        } else if (type.includes('turret')) {
+            this.ctx.beginPath(); this.ctx.arc(cx, cy, 12, 0, Math.PI*2); this.ctx.fill();
+            this.ctx.save();
+            this.ctx.translate(cx, cy);
+            this.ctx.rotate(-Math.PI/2); 
+            
+            if(type.includes('kinetic') || type.includes('basic') || type.includes('flak')) {
+                this.ctx.fillStyle = '#222';
+                this.ctx.fillRect(-3, -15, 6, 20); 
+            } else if (type.includes('sniper')) {
+                this.ctx.fillStyle = '#333';
+                this.ctx.fillRect(-2, -CELL_SIZE, 4, CELL_SIZE + 5);
+            } else if (type.includes('energy')) {
+                this.ctx.fillStyle = '#800';
+                this.ctx.fillRect(-2, -15, 4, 18);
+            } else if (type.includes('pulser')) {
+                this.ctx.strokeStyle = '#00ffff'; this.ctx.lineWidth = 3;
+                this.ctx.beginPath(); this.ctx.arc(0, 0, 15, 0, Math.PI*2); this.ctx.stroke();
+            } else { 
+                this.ctx.beginPath(); this.ctx.arc(0, 0, 15, 0, Math.PI*2); this.ctx.strokeStyle='#fff'; this.ctx.stroke();
+            }
+            this.ctx.restore();
+        }
+        
+        // Shield HP visualization
+        if (b.shieldHp > 0) {
+            this.ctx.strokeStyle = C_SHIELD;
+            this.ctx.lineWidth = 2;
+            this.ctx.globalAlpha = 0.5 + Math.abs(Math.sin(this.ticks * 0.1)) * 0.3;
+            this.ctx.beginPath(); this.ctx.arc(cx, cy, CELL_SIZE/2 - 2, 0, Math.PI*2); this.ctx.stroke();
+            this.ctx.globalAlpha = 1;
+        }
+
+        // HP Bar
+        const hpPct = b.hp / b.maxHp;
+        if(hpPct < 1 || b.shieldHp > 0) {
+            this.ctx.fillStyle = 'red'; this.ctx.fillRect(x+5, y, 30, 4);
+            this.ctx.fillStyle = '#3fb950'; this.ctx.fillRect(x+5, y, 30*hpPct, 4);
+            
+            // Draw shield bar overlay
+            if (b.shieldHp > 0) {
+                const shieldPct = b.shieldHp / (b.maxHp * 0.15); // Show up to 15% shield capacity
+                this.ctx.fillStyle = C_SHIELD; this.ctx.fillRect(x+5, y, 30*shieldPct, 4);
+            }
+        }
+    },
+
+    drawBase: function(x, y) {
+        const cx = x + CELL_SIZE/2;
+        const cy = y + CELL_SIZE/2;
+        this.ctx.fillStyle = C_BASE;
+        this.ctx.beginPath(); this.ctx.arc(cx, cy, 15, 0, Math.PI*2); this.ctx.fill();
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath(); this.ctx.arc(cx, cy, 8, 0, Math.PI*2); this.ctx.stroke();
+        // Pulse
+        this.ctx.strokeStyle = `rgba(88, 166, 255, ${Math.abs(Math.sin(this.ticks/20))})`;
+        this.ctx.beginPath(); this.ctx.arc(cx, cy, 25, 0, Math.PI*2); this.ctx.stroke();
+
+        // Base HP Bar (larger)
+        const hpPct = this.baseStats.hp / this.baseStats.maxHp;
+        this.ctx.fillStyle = 'red'; this.ctx.fillRect(x, y+CELL_SIZE-5, CELL_SIZE, 5);
+        this.ctx.fillStyle = '#3fb950'; this.ctx.fillRect(x, y+CELL_SIZE-5, CELL_SIZE*hpPct, 5);
+    },
+
+    drawEnemy: function(e) {
+        this.ctx.fillStyle = e.color;
+
+        if (e.type === 'the_cube') {
+            this.ctx.shadowBlur = 20; this.ctx.shadowColor = e.color;
+            this.ctx.fillRect(e.x-e.radius, e.y-e.radius, e.radius*2, e.radius*2);
+            this.ctx.shadowBlur = 0;
+        } else if (e.type === 'turret_enemy') {
+            this.ctx.beginPath(); this.ctx.arc(e.x, e.y, e.radius, 0, Math.PI*2); this.ctx.fill();
+        } else if (e.type === 'cyborg' || e.type === 'tank' || e.type === 'splitter' || e.type === 'builder') {
+            this.ctx.fillRect(e.x-e.radius, e.y-e.radius, e.radius*2, e.radius*2);
+        } else if (e.type === 'speeder' || e.type === 'phantom') {
+            this.ctx.beginPath();
+            this.ctx.moveTo(e.x, e.y-e.radius); this.ctx.lineTo(e.x+e.radius, e.y+e.radius); this.ctx.lineTo(e.x-e.radius, e.y+e.radius);
+            this.ctx.closePath();
+            this.ctx.fill();
+        } else if (e.type === 'flyer') {
+            this.ctx.beginPath(); this.ctx.arc(e.x, e.y, e.radius, 0, Math.PI*2); this.ctx.fill();
+            this.ctx.fillStyle = '#fff'; this.ctx.fillRect(e.x-10, e.y-2, 20, 4);
+        } else {
+            this.ctx.beginPath(); this.ctx.arc(e.x, e.y, e.radius, 0, Math.PI*2); this.ctx.fill();
+        }
+        
+        // Status effects/Shield
+        if (e.slowed > 0 || e.stunned > 0) {
+            this.ctx.strokeStyle = '#00ffff'; this.ctx.lineWidth = 2;
+            this.ctx.globalAlpha = 0.5 + Math.abs(Math.sin(this.ticks * 0.3)) * 0.5;
+            this.ctx.beginPath(); this.ctx.arc(e.x, e.y, e.radius + 5, 0, Math.PI*2); this.ctx.stroke();
+            this.ctx.globalAlpha = 1;
+        }
+        
+        if (e.hasShield > 0) {
+            this.ctx.strokeStyle = C_SHIELD; this.ctx.lineWidth = 2;
+            this.ctx.globalAlpha = 0.7;
+            this.ctx.beginPath(); this.ctx.arc(e.x, e.y, e.radius + 3, 0, Math.PI*2); this.ctx.stroke();
+            this.ctx.globalAlpha = 1;
+        }
+
+        // HP
+        this.ctx.fillStyle = 'red'; this.ctx.fillRect(e.x-10, e.y-20, 20, 3);
+        this.ctx.fillStyle = '#3fb950'; this.ctx.fillRect(e.x-10, e.y-20, 20*(e.hp/e.maxHp), 3);
+    },
+
+    isValid: function(x, y) { return x>=0 && x<GRID_W && y>=0 && y<GRID_H; },
+    createParticles: function(x, y, c, col) {
+        for(let i=0; i<c; i++) this.particles.push({x, y, vx:(Math.random()-0.5)*4, vy:(Math.random()-0.5)*4, life:20, color:col});
+    },
+    
+    updateUI: function() {
+        document.getElementById('res-ore').innerText = Math.floor(this.resources.ore);
+        document.getElementById('res-power').innerText = Math.floor(this.resources.power);
+        document.getElementById('res-alloy').innerText = this.resources.alloy + " (+" + app.globalData.alloy + " Global)";
+        document.getElementById('power-cap').innerText = this.powerCapacity;
+
+        document.getElementById('wave-num').innerText = this.wave;
+        document.getElementById('threat-lvl').innerText = this.threatLevel.toFixed(1) + 'x';
+        document.getElementById('base-hp').innerText = Math.max(0, Math.floor((this.baseStats.hp/this.baseStats.maxHp)*100)) + '%';
+        
+        document.getElementById('tp-multiplier').innerText = app.getTPMultiplier().toFixed(1) + 'x';
+
+        // Update button active state if current selection is unaffordable
+        if (this.selectedBuilding) {
+            const stats = BUILDING_TYPES[this.selectedBuilding];
+            const btn = document.querySelector(`.build-btn[onclick="game.select('${this.selectedBuilding}')"]`);
+            if (btn) {
+                if (!this.checkCost(stats.cost)) {
+                     btn.classList.remove('active');
+                     this.selectedBuilding = null;
+                }
+            }
+        }
+    }
+};
+
+// Global Listener for ESC Key and mouse position tracking
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (app.state === 'PLAYING') {
+            game.running = false;
+            app.showMenu();
+        } else {
+            app.showMenu();
+        }
+    }
+});
+
+// Track mouse position on canvas for range visualization
+document.getElementById('gameCanvas').addEventListener('mousemove', (e) => {
+    const rect = game.canvas.getBoundingClientRect();
+    game.canvas.mouseX = e.clientX - rect.left;
+    game.canvas.mouseY = e.clientY - rect.top;
+});
+
+window.onload = function() { app.init(); };
+
+	</script>
+</body>
+
+</html></body><html>
