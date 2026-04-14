@@ -1,0 +1,608 @@
+<!doctype html><html><head></head><body><!doctype html>
+<html>
+
+<head></head>
+
+<body>
+	<!DOCTYPE html>
+	<html lang="en">
+
+	<!-- This is THE Hollow Knight file by the Elite Composite Of Games-->
+	<!-- Creds to Axo323lotl@gmail.com for creating it. -->
+	<!-- For ECOG go to: https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>Hollow Knight | Optimized Player</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<style>
+			@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;700&family=Fira+Code:wght@400;700&display=swap');
+
+			:root {
+				--accent-primary: #e0e7ff;
+				--accent-glow: rgba(224, 231, 255, 0.6);
+				--hk-blue: #818cf8;
+				--soul-white: #ffffff;
+				--bg-ui: #0a0a0f;
+				--text-main: #e2e8f0;
+				--font-fancy: 'Cinzel', serif;
+			}
+
+			body {
+				font-family: 'Inter', sans-serif;
+				background-color: #050507;
+				color: var(--text-main);
+				margin: 0;
+				overflow: hidden;
+				height: 100vh;
+				width: 100vw;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.fancy-text {
+				font-family: var(--font-fancy);
+				letter-spacing: 0.15em;
+			}
+
+			/* VICTORIAN FILIGREE ELEMENTS */
+			.filigree-corner {
+				position: absolute;
+				width: 120px;
+				height: 120px;
+				pointer-events: none;
+				z-index: 90;
+				opacity: 0.4;
+				transition: opacity 0.5s ease;
+			}
+
+			.filigree-top-left {
+				top: 10px;
+				left: 10px;
+				transform: rotate(0deg);
+			}
+
+			.filigree-top-right {
+				top: 10px;
+				right: 10px;
+				transform: rotate(90deg);
+			}
+
+			.filigree-bottom-left {
+				bottom: 10px;
+				left: 10px;
+				transform: rotate(-90deg);
+			}
+
+			.filigree-bottom-right {
+				bottom: 10px;
+				right: 10px;
+				transform: rotate(180deg);
+			}
+
+			.hk-border {
+				position: relative;
+				border: 1px solid rgba(255, 255, 255, 0.15);
+				background: rgba(0, 0, 0, 0.4);
+			}
+
+			.hk-border::before,
+			.hk-border::after {
+				content: "";
+				position: absolute;
+				width: 30px;
+				height: 30px;
+				border: 2px solid var(--accent-primary);
+				filter: drop-shadow(0 0 8px var(--accent-glow));
+				z-index: 10;
+			}
+
+			.hk-border::before {
+				top: -6px;
+				left: -6px;
+				border-right: 0;
+				border-bottom: 0;
+				border-radius: 4px 0 0 0;
+			}
+
+			.hk-border::after {
+				top: -6px;
+				right: -6px;
+				border-left: 0;
+				border-bottom: 0;
+				border-radius: 0 4px 0 0;
+			}
+
+			.soul-orb-container {
+				position: relative;
+				width: 260px;
+				height: 260px;
+				border-radius: 50%;
+				background: rgba(255, 255, 255, 0.02);
+				box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.1);
+				border: 1px solid rgba(255, 255, 255, 0.15);
+				overflow: hidden;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.soul-orb-frame {
+				position: absolute;
+				inset: -10px;
+				border: 2px solid rgba(255, 255, 255, 0.05);
+				border-radius: 50%;
+				pointer-events: none;
+			}
+
+			.soul-liquid {
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 100%;
+				height: 0%;
+				background: linear-gradient(to top, #ffffff, #818cf8);
+				box-shadow: 0 0 40px #ffffff;
+				transition: height 0.3s ease-out;
+				z-index: 2;
+			}
+
+			/* UNITY CONTAINER */
+			#unity-container {
+				position: absolute;
+				inset: 0;
+				background: #000;
+				z-index: 1;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 100vw;
+				height: 100vh;
+				overflow: hidden;
+			}
+
+			#unity-canvas {
+				width: 100%;
+				height: 100%;
+				display: block;
+				object-fit: contain;
+				image-rendering: pixelated;
+			}
+
+			.loading-screen {
+				position: fixed;
+				inset: 0;
+				z-index: 100;
+				background: radial-gradient(circle at center, #0a0a14 0%, #050507 100%);
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.glass {
+				background: rgba(10, 10, 15, 0.9);
+				backdrop-filter: blur(25px);
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+			}
+
+			#settings-panel {
+				transform: translateX(100%);
+				transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+			}
+
+			#settings-panel.open {
+				transform: translateX(0);
+			}
+
+			.custom-scroll::-webkit-scrollbar {
+				width: 4px;
+			}
+
+			.custom-scroll::-webkit-scrollbar-thumb {
+				background: rgba(255, 255, 255, 0.2);
+			}
+
+			/* BUTTON STYLING */
+			.option-btn {
+				background: rgba(255, 255, 255, 0.05);
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				color: rgba(255, 255, 255, 0.5);
+				padding: 10px 12px;
+				font-size: 10px;
+				font-weight: bold;
+				text-transform: uppercase;
+				letter-spacing: 0.15em;
+				transition: all 0.2s;
+				cursor: pointer;
+				border-radius: 4px;
+				font-family: var(--font-fancy);
+			}
+
+			.option-btn:hover {
+				border-color: rgba(255, 255, 255, 0.3);
+				background: rgba(255, 255, 255, 0.08);
+			}
+
+			.option-btn.active {
+				background: var(--hk-blue);
+				color: white;
+				border-color: white;
+				box-shadow: 0 0 15px rgba(129, 140, 248, 0.4);
+			}
+
+			/* DECORATIVE DIVIDER */
+			.divider-ornament {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 15px;
+				margin: 20px 0;
+				opacity: 0.5;
+			}
+
+			.divider-line {
+				height: 1px;
+				flex-grow: 1;
+				background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+			}
+
+			.divider-diamond {
+				width: 8px;
+				height: 8px;
+				background: white;
+				transform: rotate(45deg);
+				box-shadow: 0 0 8px white;
+			}
+
+			.sidebar-watermark {
+				margin-top: auto;
+				padding: 30px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 12px;
+				border-top: 1px solid rgba(255, 255, 255, 0.05);
+			}
+
+			.watermark-text {
+				font-family: var(--font-fancy);
+				font-size: 10px;
+				font-weight: 900;
+				letter-spacing: 0.4em;
+				color: rgba(255, 255, 255, 0.3);
+				text-transform: uppercase;
+			}
+
+			.watermark-filigree {
+				width: 140px;
+				height: 15px;
+				opacity: 0.2;
+			}
+		</style>
+	</head>
+
+	<body>
+
+		<!-- GLOBAL FILIGREE CORNERS -->
+		<svg class="filigree-corner filigree-top-left" viewBox="0 0 100 100" fill="none" stroke="white"
+			stroke-width="0.5">
+			<path d="M10,10 C30,10 40,30 40,50 C40,70 20,80 10,80 M10,10 C10,30 30,40 50,40 C70,40 80,20 80,10" />
+			<path d="M20,20 C35,20 45,35 45,45 M20,20 C20,35 35,45 45,45" />
+			<circle cx="10" cy="10" r="2" fill="white" /></svg>
+		<svg class="filigree-corner filigree-top-right" viewBox="0 0 100 100" fill="none" stroke="white"
+			stroke-width="0.5">
+			<path d="M10,10 C30,10 40,30 40,50 C40,70 20,80 10,80 M10,10 C10,30 30,40 50,40 C70,40 80,20 80,10" />
+			<path d="M20,20 C35,20 45,35 45,45 M20,20 C20,35 35,45 45,45" />
+			<circle cx="10" cy="10" r="2" fill="white" /></svg>
+		<svg class="filigree-corner filigree-bottom-left" viewBox="0 0 100 100" fill="none" stroke="white"
+			stroke-width="0.5">
+			<path d="M10,10 C30,10 40,30 40,50 C40,70 20,80 10,80 M10,10 C10,30 30,40 50,40 C70,40 80,20 80,10" />
+			<path d="M20,20 C35,20 45,35 45,45 M20,20 C20,35 35,45 45,45" />
+			<circle cx="10" cy="10" r="2" fill="white" /></svg>
+		<svg class="filigree-corner filigree-bottom-right" viewBox="0 0 100 100" fill="none" stroke="white"
+			stroke-width="0.5">
+			<path d="M10,10 C30,10 40,30 40,50 C40,70 20,80 10,80 M10,10 C10,30 30,40 50,40 C70,40 80,20 80,10" />
+			<path d="M20,20 C35,20 45,35 45,45 M20,20 C20,35 35,45 45,45" />
+			<circle cx="10" cy="10" r="2" fill="white" /></svg>
+
+		<!-- HUD INDICATORS -->
+		<div class="fixed top-8 left-8 z-[80] flex items-center gap-6 pointer-events-none">
+			<div class="w-16 h-16 hk-border bg-black/80 flex items-center justify-center pointer-events-auto shadow-xl">
+				<svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+					<path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" /></svg>
+			</div>
+			<div class="flex flex-col">
+				<span class="fancy-text text-sm font-bold tracking-[0.4em] text-white uppercase drop-shadow-lg">Hallownest Optimized</span>
+				<div class="flex items-center gap-3 mt-1">
+					<span id="fps-counter" class="text-[10px] font-mono text-indigo-300">-- FPS</span>
+					<div class="w-1 h-1 bg-white/40 rounded-full"></div>
+					<span id="cache-status" class="text-[10px] font-mono text-emerald-400 uppercase tracking-widest">Archive Verified</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- SETTINGS TOGGLE -->
+		<button id="toggle-settings" class="fixed top-8 right-8 z-[120] w-14 h-14 glass rounded-full flex items-center justify-center border border-white/30 hover:bg-white/10 transition-all active:scale-95 group">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white group-hover:rotate-90 transition-transform duration-700">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </button>
+
+		<!-- SETTINGS PANEL -->
+		<div id="settings-panel"
+			class="fixed top-0 right-0 bottom-0 w-[400px] z-[130] glass border-l border-white/20 flex flex-col custom-scroll overflow-y-auto">
+			<!-- Sidebar Header Decor -->
+			<div class="p-8 pb-4 relative overflow-hidden">
+				<div class="flex items-center justify-between mb-4 relative z-10">
+					<h2 class="fancy-text text-xl font-black tracking-widest text-white">SYSTEM TUNER</h2>
+					<button id="close-settings" class="text-white/40 hover:text-white p-2 transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+				</div>
+				<div class="divider-ornament">
+					<div class="divider-line"></div>
+					<div class="divider-diamond"></div>
+					<div class="divider-line"></div>
+				</div>
+			</div>
+
+			<div class="px-8 space-y-10">
+				<!-- RESOLUTION -->
+				<div class="space-y-4">
+					<div class="flex items-center gap-4">
+						<p class="text-[10px] text-indigo-300 font-black uppercase tracking-[0.4em]">Resolution Scan</p>
+						<div class="h-px flex-1 bg-white/10"></div>
+					</div>
+					<div class="flex gap-2">
+						<button class="option-btn resolution-opt flex-1" onclick="setResolution(240)">240p</button>
+						<button class="option-btn resolution-opt flex-1 active" onclick="setResolution(720)">720p</button>
+						<button class="option-btn resolution-opt flex-1" onclick="setResolution(1080)">1080p</button>
+					</div>
+				</div>
+
+				<!-- FPS SCALE -->
+				<div class="space-y-4">
+					<div class="flex items-center gap-4">
+						<p class="text-[10px] text-indigo-300 font-black uppercase tracking-[0.4em]">Frame Limiter</p>
+						<div class="h-px flex-1 bg-white/10"></div>
+					</div>
+					<div class="flex gap-2">
+						<button class="option-btn fps-opt flex-1" onclick="setFPS(15)">15 FPS</button>
+						<button class="option-btn fps-opt flex-1" onclick="setFPS(30)">30 FPS</button>
+						<button class="option-btn fps-opt flex-1 active" onclick="setFPS(60)">60 FPS</button>
+					</div>
+				</div>
+
+				<!-- MEMORY -->
+				<div class="space-y-4">
+					<div class="flex items-center gap-4">
+						<p class="text-[10px] text-indigo-300 font-black uppercase tracking-[0.4em]">Ancient Records</p>
+						<div class="h-px flex-1 bg-white/10"></div>
+					</div>
+					<button onclick="clearCache()" class="option-btn w-full !bg-red-500/10 !border-red-500/30 !text-red-400 hover:!bg-red-500/20 py-4">Purge Soul Cache</button>
+				</div>
+			</div>
+
+			<!-- SIDEBAR WATERMARK (AXO) -->
+			<div class="sidebar-watermark">
+				<svg class="watermark-filigree" viewBox="0 0 200 20" fill="none" stroke="white" stroke-width="0.5">
+					<path d="M0,10 Q50,0 100,10 T200,10" />
+					<path d="M40,10 Q70,20 100,10 T160,10" />
+					<circle cx="100" cy="10" r="1.5" fill="white" />
+				</svg>
+				<span class="watermark-text">Made by Axo</span>
+				<div class="flex gap-3 opacity-20">
+					<div class="w-1 h-1 bg-white rotate-45"></div>
+					<div class="w-1 h-1 bg-white rotate-45"></div>
+					<div class="w-1 h-1 bg-white rotate-45"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- LOADING SCREEN -->
+		<div id="loading-screen" class="loading-screen">
+			<div class="soul-orb-container">
+				<div class="soul-orb-frame"></div>
+				<div id="soul-fill" class="soul-liquid"></div>
+				<div class="relative z-10 flex flex-col items-center">
+					<span id="load-percent" class="text-7xl font-black text-white fancy-text mix-blend-difference">0</span>
+					<span class="text-[9px] text-white/60 font-black uppercase tracking-[0.6em] mix-blend-difference mt-3">Syncing Records</span>
+				</div>
+			</div>
+			<div id="file-size-info"
+				class="mt-12 text-[10px] font-mono text-white/40 uppercase tracking-[0.3em] flex flex-col items-center gap-4">
+				<span class="animate-pulse">Accessing Ancient Archive...</span>
+			</div>
+		</div>
+
+		<!-- GAME CONTAINER -->
+		<div id="unity-container">
+			<canvas id="unity-canvas"></canvas>
+		</div>
+
+		<script>
+			const DB_NAME = 'HallownestArchive_V2';
+        const STORE_NAME = 'SoulCache';
+        const ROOT_DIR = 'https://play.2games.io/game/hollow-knight/';
+        const BUILD_DIR = `${ROOT_DIR}Build/`;
+        const TOTAL_EXPECTED_MB = 909.17;
+        
+        let db;
+        let totalDownloadedBytes = 0;
+        let targetFPS = 60;
+        let frameInterval = 1000 / 60;
+
+        const settingsPanel = document.getElementById('settings-panel');
+        const toggleBtn = document.getElementById('toggle-settings');
+        const closeBtn = document.getElementById('close-settings');
+
+        toggleBtn.onclick = () => settingsPanel.classList.add('open');
+        closeBtn.onclick = () => settingsPanel.classList.remove('open');
+        
+        function setResolution(h) {
+            const canvas = document.getElementById('unity-canvas');
+            const ratio = 16/9;
+            const w = h * ratio;
+            canvas.style.width = `${w}px`;
+            canvas.style.height = `${h}px`;
+            canvas.style.maxWidth = '100vw';
+            canvas.style.maxHeight = '100vh';
+            
+            document.querySelectorAll('.resolution-opt').forEach(b => {
+                b.classList.toggle('active', b.innerText.includes(h));
+            });
+        }
+
+        function setFPS(fps) {
+            targetFPS = fps;
+            frameInterval = 1000 / fps;
+            document.querySelectorAll('.fps-opt').forEach(b => {
+                b.classList.toggle('active', b.innerText.includes(fps));
+            });
+        }
+
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function getFile(key) {
+            const transaction = db.transaction(STORE_NAME, 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            return new Promise(r => {
+                const req = store.get(key);
+                req.onsuccess = () => r(req.result);
+                req.onerror = () => r(null);
+            });
+        }
+
+        async function saveFile(key, blob) {
+            const transaction = db.transaction(STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            return new Promise(r => {
+                const req = store.put(blob, key);
+                req.onsuccess = () => r(true);
+                req.onerror = () => r(false);
+            });
+        }
+
+        async function fetchWithCache(url, key) {
+            const cached = await getFile(key);
+            if (cached) {
+                updateProgress(cached.size);
+                return cached;
+            }
+            const response = await fetch(url);
+            const reader = response.body.getReader();
+            const chunks = [];
+            while(true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                updateProgress(value.length);
+            }
+            const blob = new Blob(chunks);
+            await saveFile(key, blob);
+            return blob;
+        }
+
+        function updateProgress(bytes) {
+            totalDownloadedBytes += bytes;
+            const currentMB = (totalDownloadedBytes / (1024 * 1024)).toFixed(2);
+            const percent = Math.min(Math.floor((currentMB / TOTAL_EXPECTED_MB) * 100), 100);
+            document.getElementById('soul-fill').style.height = `${percent}%`;
+            document.getElementById('load-percent').innerText = percent;
+            document.getElementById('file-size-info').innerHTML = `<span>Made by Axo of the Elite Composite Of Games</span>`;
+        }
+
+        async function clearCache() {
+            const transaction = db.transaction(STORE_NAME, 'readwrite');
+            transaction.objectStore(STORE_NAME).clear();
+            location.reload();
+        }
+
+        async function boot() {
+            try {
+                db = await initDB();
+                
+                const fetchParts = async (baseName, count, keyPrefix) => {
+                    const blobs = [];
+                    for (let i = 1; i <= count; i++) {
+                        blobs.push(await fetchWithCache(`${BUILD_DIR}${baseName}.part${i}`, `${keyPrefix}_p${i}`));
+                    }
+                    return URL.createObjectURL(new Blob(blobs));
+                };
+
+                const [dataUrl, wasmUrl] = await Promise.all([
+                    fetchParts('bog.data', 44, 'data'),
+                    fetchParts('bog.wasm', 2, 'wasm')
+                ]);
+
+                const config = {
+                    dataUrl: dataUrl,
+                    frameworkUrl: `${BUILD_DIR}bog.framework.js`,
+                    codeUrl: wasmUrl,
+                    streamingAssetsUrl: "StreamingAssets",
+                    companyName: "Team Cherry",
+                    productName: "Hollow Knight",
+                    devicePixelRatio: 1
+                };
+
+                const loader = document.createElement('script');
+                loader.src = `${BUILD_DIR}bog.loader.js`;
+                loader.onload = () => {
+                    createUnityInstance(document.getElementById('unity-canvas'), config).then(() => {
+                        document.getElementById('loading-screen').style.opacity = '0';
+                        setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 1000);
+                        startGameLoop();
+                    });
+                };
+                document.body.appendChild(loader);
+            } catch (e) {
+                document.getElementById('file-size-info').innerText = "SYNC INTERRUPTED";
+            }
+        }
+
+        function startGameLoop() {
+            let frames = 0;
+            let lastFPSUpdate = performance.now();
+            let lastFrameTime = performance.now();
+
+            function loop() {
+                const now = performance.now();
+                const delta = now - lastFrameTime;
+
+                if (delta >= frameInterval) {
+                    frames++;
+                    lastFrameTime = now - (delta % frameInterval);
+
+                    if (now - lastFPSUpdate >= 1000) {
+                        document.getElementById('fps-counter').innerText = `${frames} FPS`;
+                        frames = 0;
+                        lastFPSUpdate = now;
+                    }
+                }
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        boot();
+		</script>
+	</body>
+
+	</html>
+</body>
+<html></body><html>
