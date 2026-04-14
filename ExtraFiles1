@@ -1,0 +1,229 @@
+<!doctype html><html><head></head><body><!DOCTYPE html>
+<html lang="en">
+
+<!-- This is a file by the Elite Composite Of Games-->
+<!-- All rights go to the owner of this game. -->
+<!-- For ECOG go to https://docs.google.com/document/d/1baSNjc2NsNII6bfuW-hWQX_JoapRp8_djr2fYlLDXjQ/ -->
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Web NES Emulator</title>
+	<script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+		body {
+			background-color: #1a1a1a;
+			color: #f0f0f0;
+			font-family: 'Press Start 2P', cursive;
+		}
+
+		.nes-container {
+			border: 4px solid #f0f0f0;
+			image-rendering: pixelated;
+		}
+
+		canvas {
+			width: 100%;
+			height: auto;
+			max-width: 512px;
+			background: #000;
+		}
+
+		.pixel-btn {
+			box-shadow: 4px 4px 0px #000;
+			transition: transform 0.1s;
+		}
+
+		.pixel-btn:active {
+			transform: translate(2px, 2px);
+			box-shadow: 2px 2px 0px #000;
+		}
+	</style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+	<div class="max-w-2xl w-full text-center">
+		<h1 class="text-2xl mb-8 text-yellow-400">8-BIT EMULATOR</h1>
+
+		<!-- Screen Area -->
+		<div class="nes-container mx-auto mb-6 bg-black relative">
+			<canvas id="nes-canvas" width="256" height="240"></canvas>
+			<div id="drop-zone"
+				class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 border-2 border-dashed border-gray-500 cursor-pointer hover:border-yellow-400 transition-colors">
+				<p class="text-[10px] p-4 pointer-events-none">DRAG & DROP .NES FILE<br>OR CLICK TO UPLOAD</p>
+					<input type="file" id="file-input" class="hidden" accept=".nes">
+            </div>
+			</div>
+
+			<!-- Controls Legend -->
+			<div class="grid grid-cols-2 gap-4 text-[8px] mb-8 bg-gray-800 p-4 rounded">
+				<div>
+					<p class="text-yellow-400 mb-2 underline">CONTROLS</p>
+					<p>DPAD: ARROW KEYS</p>
+					<p>A: X | B: Z</p>
+				</div>
+				<div>
+					<p class="text-yellow-400 mb-2 underline">SYSTEM</p>
+					<p>START: ENTER</p>
+					<p>SELECT: SHIFT</p>
+				</div>
+			</div>
+
+			<!-- Homebrew Quick Links -->
+			<div class="flex flex-wrap justify-center gap-4">
+				<button onclick="loadSample('https://jsnes.org/roms/lj65.nes')" class="pixel-btn bg-blue-600 px-4 py-2 text-[10px]">PLAY LJ65</button>
+				<button onclick="loadSample('https://jsnes.org/roms/croom.nes')" class="pixel-btn bg-green-600 px-4 py-2 text-[10px]">PLAY CROOM</button>
+				<button id="reset-btn" class="pixel-btn bg-red-600 px-4 py-2 text-[10px] hidden">RESET</button>
+			</div>
+
+			<p id="status" class="mt-6 text-[8px] text-gray-500">READY</p>
+		</div>
+
+		<script>
+			const canvas = document.getElementById('nes-canvas');
+        const context = canvas.getContext('2d');
+        const status = document.getElementById('status');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Initialize Screen Data
+        const imageData = context.getImageData(0, 0, 256, 240);
+        const buf = new ArrayBuffer(imageData.data.length);
+        const buf8 = new Uint8ClampedArray(buf);
+        const buf32 = new Uint32Array(buf);
+
+        // Audio Setup
+        let audioCtx = null;
+        const AUDIO_BUFFER_SIZE = 4096;
+        const audioBuffer = [];
+
+        // Controller mapping
+        const keyboardMap = {
+            38: jsnes.Controller.BUTTON_UP,
+            40: jsnes.Controller.BUTTON_DOWN,
+            37: jsnes.Controller.BUTTON_LEFT,
+            39: jsnes.Controller.BUTTON_RIGHT,
+            88: jsnes.Controller.BUTTON_A,      // X
+            90: jsnes.Controller.BUTTON_B,      // Z
+            13: jsnes.Controller.BUTTON_START,  // Enter
+            16: jsnes.Controller.BUTTON_SELECT  // Shift
+        };
+
+        const nes = new jsnes.NES({
+            onFrame: function(frameBuffer) {
+                for (let i = 0; i < 256 * 240; i++) {
+                    buf32[i] = 0xFF000000 | frameBuffer[i];
+                }
+                imageData.data.set(buf8);
+                context.putImageData(imageData, 0, 0);
+            },
+            onAudioSample: function(left, right) {
+                if (audioCtx) {
+                    audioBuffer.push(left, right);
+                }
+            }
+        });
+
+        // Frame loop
+        function frame() {
+            requestAnimationFrame(frame);
+            nes.frame();
+        }
+
+        // Input Handling
+        document.addEventListener('keydown', (e) => {
+            if (keyboardMap[e.keyCode] !== undefined) {
+                nes.buttonDown(1, keyboardMap[e.keyCode]);
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (keyboardMap[e.keyCode] !== undefined) {
+                nes.buttonUp(1, keyboardMap[e.keyCode]);
+                e.preventDefault();
+            }
+        });
+
+        // File Loading
+        function loadRom(data) {
+            try {
+                nes.loadROM(data);
+                dropZone.classList.add('hidden');
+                resetBtn.classList.remove('hidden');
+                status.innerText = "RUNNING...";
+                
+                // Initialize Audio on first interaction
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                frame();
+            } catch (e) {
+                status.innerText = "ERROR: INVALID ROM";
+                console.error(e);
+            }
+        }
+
+        // Drop Zone UI
+        dropZone.onclick = () => fileInput.click();
+        
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => loadRom(event.target.result);
+                reader.readAsBinaryString(file);
+            }
+        };
+
+        dropZone.ondragover = (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-yellow-400');
+        };
+
+        dropZone.ondragleave = () => {
+            dropZone.classList.remove('border-yellow-400');
+        };
+
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => loadRom(event.target.result);
+                reader.readAsBinaryString(file);
+            }
+        };
+
+        function loadSample(url) {
+            status.innerText = "LOADING SAMPLE...";
+            fetch(url)
+                .then(res => res.arrayBuffer())
+                .then(buffer => {
+                    let binary = '';
+                    const bytes = new Uint8Array(buffer);
+                    for (let i = 0; i < bytes.byteLength; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    loadRom(binary);
+                })
+                .catch(err => {
+                    status.innerText = "FETCH FAILED";
+                });
+        }
+
+        resetBtn.onclick = () => {
+            nes.reloadROM();
+            status.innerText = "SYSTEM RESET";
+        };
+
+		</script>
+</body>
+
+</html></body><html>
