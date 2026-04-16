@@ -1,455 +1,289 @@
+
 <!DOCTYPE html>
-<html>
-  <head>
-	<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-R1ZCLH6XCR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECOG Unlimited</title>
 
-  gtag('config', 'G-R1ZCLH6XCR');
-</script>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2694073837597977"
-     crossorigin="anonymous"></script>
-	<link rel="stylesheet" href="styles.css">
-    <title>ECOG</title>
-	<link rel="icon" type="image/x-icon" href="games-site-logo.png" />
-    <link rel="shortcut icon" type="image/x-icon" href="games-site-logo.png" />
-    <meta property="og:description" content="We do got games on our phone." />
-    <meta name="description" content="We do got games on our phone." />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </head>
-  <body onload="startTime()">
-  
-  <div class="menubar">
-  <div class="topnav">
-  <a class="active" href="index.html">Games</a>
-  <a href="retro.html">Retro</a>
-  <a href="flash.html">Flash</a>
-			  <div class="topnav-right">
-	<a href="feedback.html"><img src="feedback.png" alt="Description for image" width="15" height="15"></a>
-	<a href="info.html"><img src="info.png" alt="Description for image" width="15" height="15"></a>
-	<a id="txt"></a>
-	<a id="hide">Hide</a>
-  </div>
-  </div>
-  </div>
-  
-  <div class="dropdown">
-  <button class="dropbtn">Image Size</button>
-  <div class="dropdown-content">
-    <input type="radio" id="small" name="size" value="small">
-    <label for="small">Small</label><br>
-    <input type="radio" id="medium" name="size" value="medium">
-    <label for="medium">Medium</label><br>
-    <input type="radio" id="large" name="size" value="large">
-    <label for="large">Large (OG)</label><br>
-  </div>
+<style>
+
+/* ===== GLOBAL ===== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: white;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a1a1a;
+  padding: 10px 20px;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* SEARCH */
+.search-box {
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+}
+
+/* ===== CATEGORY BUTTONS ===== */
+.categories {
+  text-align: center;
+  margin: 15px;
+}
+
+.categories button {
+  margin: 5px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: white;
+  cursor: pointer;
+}
+
+.categories button:hover {
+  background: #444;
+}
+
+/* ===== GRID ===== */
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* ===== GAME CARD ===== */
+.game-link {
+  text-decoration: none;
+}
+
+.game-tile {
+  background: #1c1c1c;
+  border-radius: 12px;
+  width: 180px;
+  padding: 10px;
+  text-align: center;
+  transition: 0.2s;
+}
+
+.game-tile:hover {
+  transform: scale(1.08);
+  background: #2a2a2a;
+  box-shadow: 0 0 15px rgba(255,255,255,0.15);
+}
+
+/* ===== IMAGE ===== */
+.game-icon {
+  width: 100%;
+  border-radius: 10px;
+}
+
+/* ===== TITLE ===== */
+.game-title {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* ===== POPULAR ===== */
+.popular {
+  border: 2px solid red;
+}
+
+</style>
+</head>
+
+<body>
+<!-- NAVIGATION BAR -->
+<style>
+.navbar {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.nav-button {
+    display: inline-block;
+    padding: 12px 20px;
+    margin: 10px;
+    background: linear-gradient(45deg, #00c6ff, #0072ff);
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.nav-button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #00f2fe, #4facfe);
+}
+</style>
+
+<div class="navbar">
+    <a href="index.html" class="nav-button">🏠 Main Page</a>
+    <a href="emulators.html" class="nav-button">🎮 Emulators</a>
 </div>
-  
-			<h1 class="text-center">All Games</h1>
-     <p class="text-center">Here is the full list of games on this site that do not fit into another category, play some of your favorites or find a new one!</p>
-	 <p class="text-center">If your favourite game is missing you can put it in the suggestion box in the top right</p>
-	 <p class="text-important">A red game tile means that it is within the top 5 most popular games this week</p>
-
-  <div class="sortbar">
-    <div class="topnav">
-	<a class="active">Sort by:</a>
-	<a href="#all">All</a>
-	<a href="#fnaf">FNAF</a>
-    <a href="#moto-x3m">Moto X3M</a>
-    <a href="#snail-bob">Snail Bob</a>
-	<a href="#vex">Vex</a>
-  </div>
-  </div>
-   <script src="JS/hide.js"></script>
-  <script src="JS/clock.js"></script>
-  <script src="JS/search.js"></script>
-  <script src="JS/size.js"></script>
-  <nav>
-  <div class="nav-container">
-    <div class="search-container">
-      <input class="search-box" id="search-box" type="search"  onkeyup="searching(this)" onfocus="fun(this)" placeholder="Search for Games">
-      <div class="search-results" id="search-results">
-	  
-      <div id="all" class="flex-container">
-          <a href="Emulators/Banjo Kazooie/banjokazooie.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Banjo Kazooie/banjo.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Banjo Kazooie</h1>
-              </div>
-          </a>
-        
-          <a href="Emulators/Banjo Tooie (probably doesn't work)/banjotooie.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Banjo Tooie (probably doesn't work)/tooie.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Banjo Tooie (might not work)</h1>
-              </div>
-          </a>
-
-           <a href="Emulators/COD 4 Modern Warefare/COD4MW.html" class="game-link container">
-              <div class="game-tile-popular">
-                  <img class="game-icon" src="Emulators/COD 4 Modern Warefare/mw4.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">COD 4 Modern Warfare</h1>
-              </div>
-          </a>
-		  
-		            <a href="Emulators/COD World At War/CODWAW.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/COD World At War/yayay.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">COD World At War</h1>
-              </div>
-          </a>
-		  
-		  		  <a href="Emulators/Call Of Duty Modern Warfare 3 Defiance/codmw3d.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Call Of Duty Modern Warfare 3 Defiance/mw3d.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">COD MW3 Defiance</h1>
-              </div>
-          </a>
-		  
-		  		  <a href="Emulators/Counter Strike/counterstrike.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Counter Strike/counters.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Counter Striket</h1>
-              </div>
-          </a>
-		  
-		  		  <a href="Emulators/Crash Bandicoot/crashbandicoot.html" class="game-link container">
-              <div class="game-tile-popular">
-                  <img class="game-icon" src="Emulators/Crash Bandicoot/crashbro.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Crash Bandicoot</h1>
-              </div>
-          </a>
-
- <a href="Emulators/DB Advance Adventure/DragonballAdvancedA.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/DB Advance Adventure/venutrevance.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Dragonball Advanced Adventure</h1>
-              </div>
-          </a>
-
-		          <a href="backrooms2d/Backrooms 2D.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/DBZ Super Sonic Warriors/dbzsupersonicwarriors.html" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">DBZ Super Sonic Warriors</h1>
-              </div>
-          </a>
-
-		  
-		  <a href="Emulators/DBZ The Legacy Of Goku/dbzthelegacyofgoku.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/DBZ The Legacy Of Goku/dbzlegacy.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">DBZ The Legacy Of Goku</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Diablo/diablo.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Diablo/diablo.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Diablo</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Dig Dug/digdug.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Dig Dug/dugdg.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Dig Dug</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Donkey Kong/donkeykong.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Donkey Kong/dkurway.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Donkey Kong</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Doom/doom.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Doom/doom.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Doom</h1>
-              </div>
-          </a>
-		  
-          <a href="Emulators/Duck Hunt/duckhunt.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Duck Hunt/duck.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Duck Hunt</h1>
-              </div>
-          </a>
-
-          <a href="Emulators/Final Fantasy/finalfantasy.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Final Fantasy/finalf.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Final Fantasy</h1>
-              </div>
-          </a>
-
-          <a href="Emulators/GTA/gta.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/GTA/gta.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">GTA</h1>
-              </div>
-          </a>
-
-          <a href="Emulators/GTA 2 maybe/gta2maybe.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/GTA 2 maybe/gta2222.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">GTA 2</h1>
-              </div>
-          </a>
-
-          <a href="Emulators/Game and watch collection/gameandwatch.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Game and watch collection/g&w.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Game and Watch Collection</h1>
-              </div>
-          </a>
 
 
-		    <a href="Emulators/Golden Eye 007/goldeneye007.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Golden Eye 007/007.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Golden Eye 007</h1>
-              </div>
-          </a>
-
-		  
-          <a href="Emulators/Gun Smoke/gunsmoke.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Gun Smoke/ntgnsmk.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Gun Smoke</h1>
-              </div>
-          </a>			
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="logo">ECOG Unlimited</div>
+  <input type="text" id="search" class="search-box" placeholder="Search games...">
+</div>
 
 
-          <a href="Emulators/Halo Combat Devolved/halcombatdevolved.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Halo Combat Devolved/hcbd.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Halo Combat Devolved</h1>
-              </div>
-          </a>
+<!-- GAMES -->
+<div class="flex-container" id="gameContainer">
 
-		  		 <a href="Emulators/Hollow Knight Fanmade/hollowknightnot.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Hollow Knight Fanmade/hkfnmd.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Hollow Knight Fanmade</h1>
-              </div>
-          </a>
+<a href="Emulators/Banjo Kazooie/banjokazooie.html" class="game-link"><div class="game-tile"><img src="Emulators/Banjo Kazooie/banjo.png" class="game-icon"><div class="game-title">Banjo Kazooie</div></div></a>
 
-		            <a href="Emulators/Kirby's Adventure/kirbysaventure.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Kirby's Adventure/kirbadven.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Kirby's Adventure</h1>
-              </div>
-          </a>
+<a href="Emulators/Banjo Tooie (probably doesn't work)/banjotooie.html" class="game-link"><div class="game-tile"><img src="Emulators/Banjo Tooie (probably doesn't work)/tooie.png" class="game-icon"><div class="game-title">Banjo Tooie</div></div></a>
 
-          <a href="Emulators/Mario Paint/mariopaint.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Mario Paint/mpaint.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Mario Paint</h1>
-              </div>
-          </a>
-		  
-		            <a href="Emulators/MarioKart 64/mariokart64.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/MarioKart 64/mk64.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Mario Kart 64</h1>
-              </div>
-          </a>
+<a href="Emulators/COD 4 Modern Warefare/COD4MW.html" class="game-link"><div class="game-tile"><img src="Emulators/COD 4 Modern Warefare/mw4.png" class="game-icon"><div class="game-title">COD 4 MW</div></div></a>
 
-          <a href="Emulators/Mega Man/megaman.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Mega Man/megamega.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Mega Man</h1>
-              </div>
-          </a>
-		  
-		            <a href="Emulators/Mega Man 2/megaman2.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Mega Man 2/megamanii.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Mega Man 2</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Mega Man 3/megaman3.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Mega Man 3/mega3.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Mega Man 3</h1>
-              </div>
-          </a>
+<a href="Emulators/COD World At War/CODWAW.html" class="game-link"><div class="game-tile"><img src="Emulators/COD World At War/yayay.png" class="game-icon"><div class="game-title">COD WAW</div></div></a>
 
-          <a href="Emulators/Mortal Kombat/mortalkombat.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Mortal Kombat/mkyey.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Mortal Kombat</h1>
-              </div>
-          </a>
+<a href="Emulators/Call Of Duty Modern Warfare 3 Defiance/codmw3d.html" class="game-link"><div class="game-tile"><img src="Emulators/Call Of Duty Modern Warfare 3 Defiance/mw3d.png" class="game-icon"><div class="game-title">MW3 Defiance</div></div></a>
 
-          <a href="Emulators/Mortal Kombat 2/mortalkombat2.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Mortal Kombat 2/mkii.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Mortal Kombat 2</h1>
-              </div>
-          </a>
+<a href="Emulators/Counter Strike/counterstrike.html" class="game-link"><div class="game-tile"><img src="Emulators/Counter Strike/counters.png" class="game-icon"><div class="game-title">Counter Strike</div></div></a>
 
-          <a href="Emulators/Mortal Kombat 3/mortalkombat3.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Mortal Kombat 3/mk3.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Mortal Kombat 3</h1>
-              </div>
-          </a>
+<a href="Emulators/Crash Bandicoot/crashbandicoot.html" class="game-link"><div class="game-tile"><img src="Emulators/Crash Bandicoot/crashbro.png" class="game-icon"><div class="game-title">Crash Bandicoot</div></div></a>
 
-          <a href="Emulators/Ms. Pac Man/mspacman.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Ms. Pac Man/mspac.png" alt="icon" width="360" height="360"/>
-                  <h1 class="game-title">Ms. Pac Man</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Pac Man/pacman.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Pac Man/pacman.png" alt="icon" width="360" height="360"/>
-                  <h1 class="game-title">Pac Man</h1>
-              </div>
-          </a>
+<a href="Emulators/DB Advance Adventure/DragonballAdvancedA.html" class="game-link"><div class="game-tile"><img src="Emulators/DB Advance Adventure/venutrevance.png" class="game-icon"><div class="game-title">DB Advance Adventure</div></div></a>
 
-          <a href="Emulators/Sonic Advance/sonicadvance.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Sonic Advance/savd.png" alt="icon" width="360" height="360"/>
-                  <h1 class="game-title">Sonic Advance</h1>
-              </div>
-          </a>
-		  
-		            <a href="Emulators/Sonic Advance 2/sonicadvance2.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Sonic Advance 2/sa2.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Sonic Advance 2</h1>
-              </div>
-          </a>
+<a href="Emulators/DBZ Super Sonic Warriors/dbzsupersonicwarriors.html" class="game-link"><div class="game-tile"><img src="Emulators/DBZ Super Sonic Warriors/superson.png" class="game-icon"><div class="game-title">DBZ Supersonic Warriors</div></div></a>
 
-          <a href="Emulators/Sonic Advance 3/sonicadvance3.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Sonic Advance 3/sa3.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Sonic Advance 3</h1>
-              </div>
-          </a>
+<a href="Emulators/DBZ The Legacy Of Goku/dbzthelegacyofgoku.html" class="game-link"><div class="game-tile"><img src="Emulators/DBZ The Legacy Of Goku/dbzlegacy.png" class="game-icon"><div class="game-title">DBZ Legacy of Goku</div></div></a>
 
-          <a href="Emulators/Sonic Classic Collection/sonicclassicc.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Sonic Classic Collection/scc.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Sonic Classic Collection</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Sonic Colors/sonicolors.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Sonic Colors/soniccolor.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Sonic Colors</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Sonic Rush/sonicrush.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Sonic Rush/srus.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Sonic Rush</h1>
-              </div>
-          </a>
+<a href="Emulators/Diablo/diablo.html" class="game-link"><div class="game-tile"><img src="Emulators/Diablo/diablo.png" class="game-icon"><div class="game-title">Diablo</div></div></a>
 
-          <a href="Emulators/Space Invaders/spaceinvaders.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Space Invaders/space.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Space Invaders</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Street Fighter 2/streetfighter2.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Street Fighter 2/st2.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Street Fighter 2</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Super Mario 64/supermario64.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Super Mario 64/sm64.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Super Mario 64</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Super Mario Bros/supermariobros.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Super Mario Bros/smb.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Super Mario Bros</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Super Mario Bros 2/supermariobros2.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Super Mario Bros 2/smll.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Super Mario Bros 2</h1>
-              </div>
-          </a>
+<a href="Emulators/Dig Dug/digdug.html" class="game-link"><div class="game-tile"><img src="Emulators/Dig Dug/dugdg.png" class="game-icon"><div class="game-title">Dig Dug</div></div></a>
 
-          <a href="Emulators/Super Mario Bros 3/supermariobros3.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Super Mario Bros 3/sm3y.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Super Mario Bros 3</h1>
-              </div>
-          </a>
-		  
-		  <a href="Emulators/Super Smash Bros/supersmashbros.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Super Smash Bros/sms.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Super Smash Bros</h1>
-              </div>
-          </a>
+<a href="Emulators/Donkey Kong/donkeykong.html" class="game-link"><div class="game-tile"><img src="Emulators/Donkey Kong/dkurway.png" class="game-icon"><div class="game-title">Donkey Kong</div></div></a>
 
-          <a href="Emulators/Tecmo Bowl/tecmobowl49.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Tecmo Bowl/tbdad.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Tecmo Bowl</h1>
-              </div>
-          </a>
+<a href="Emulators/Doom/doom.html" class="game-link"><div class="game-tile"><img src="Emulators/Doom/doom.png" class="game-icon"><div class="game-title">Doom</div></div></a>
 
-          <a href="Emulators/Tom Clancy's Rainbow Six/rainbow6.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Tom Clancy's Rainbow Six/tcr6.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Tom Clancy's Rainbow Six</h1>
-              </div>
-          </a>
+<a href="Emulators/Duck Hunt/duckhunt.html" class="game-link"><div class="game-tile"><img src="Emulators/Duck Hunt/duck.png" class="game-icon"><div class="game-title">Duck Hunt</div></div></a>
 
-          <a href="Emulators/Ultimate Mortal Kombat/ultimatemortalk.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Ultimate Mortal Kombat/ultimatemk.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Ultimate Mortal Kombat</h1>
-              </div>
-          </a>
-		
-		  <a href="Emulators/Wolfenstein 3D/wolfenstein3d.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Emulators/Wolfenstein 3D/wolf.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Wolfenstein 3D</h1>
-              </div>
-          </a>
+<a href="Emulators/Final Fantasy/finalfantasy.html" class="game-link"><div class="game-tile"><img src="Emulators/Final Fantasy/finalf.png" class="game-icon"><div class="game-title">Final Fantasy</div></div></a>
+
+<a href="Emulators/GTA 2 maybe/gta2maybe.html" class="game-link"><div class="game-tile"><img src="Emulators/GTA 2 maybe/gta2222.png" class="game-icon"><div class="game-title">GTA 2</div></div></a>
+
+<a href="Emulators/GTA/gta.html" class="game-link"><div class="game-tile"><img src="Emulators/GTA/gta.png" class="game-icon"><div class="game-title">GTA</div></div></a>
+
+<a href="Emulators/Game and watch collection/gameandwatch.html" class="game-link"><div class="game-tile"><img src="Emulators/Game and watch collection/g&w.png" class="game-icon"><div class="game-title">Game & Watch</div></div></a>
+
+<a href="Emulators/Golden Eye 007/goldeneye007.html" class="game-link"><div class="game-tile"><img src="Emulators/Golden Eye 007/007.png" class="game-icon"><div class="game-title">GoldenEye 007</div></div></a>
+
+<a href="Emulators/Gun Smoke/gunsmoke.html" class="game-link"><div class="game-tile"><img src="Emulators/Gun Smoke/ntgnsmk.png" class="game-icon"><div class="game-title">Gun Smoke</div></div></a>
+
+<a href="Emulators/Halo Combat Devolved/halcombatdevolved.html" class="game-link"><div class="game-tile"><img src="Emulators/Halo Combat Devolved/hcbd.png" class="game-icon"><div class="game-title">Halo Combat Devolved</div></div></a>
+
+<a href="Emulators/Hollow Knight Fanmade/hollowknightnot.html" class="game-link"><div class="game-tile"><img src="Emulators/Hollow Knight Fanmade/hkfnmd.png" class="game-icon"><div class="game-title">HK Fanmade</div></div></a>
+
+<a href="Emulators/Kirby's Adventure/kirbysaventure.html" class="game-link"><div class="game-tile"><img src="Emulators/Kirby's Adventure/kirbadven.png" class="game-icon"><div class="game-title">Kirby's Adventure</div></div></a>
+
+<a href="Emulators/Mario Paint/mariopaint.html" class="game-link"><div class="game-tile"><img src="Emulators/Mario Paint/mpaint.png" class="game-icon"><div class="game-title">Mario Paint</div></div></a>
+
+<a href="Emulators/MarioKart 64/mariokart64.html" class="game-link"><div class="game-tile"><img src="Emulators/MarioKart 64/mk64.png" class="game-icon"><div class="game-title">Mario Kart 64</div></div></a>
+
+<a href="Emulators/Mega Man/megaman.html" class="game-link"><div class="game-tile"><img src="Emulators/Mega Man/megamega.png" class="game-icon"><div class="game-title">Mega Man</div></div></a>
+
+<a href="Emulators/Mega Man 2/megaman2.html" class="game-link"><div class="game-tile"><img src="Emulators/Mega Man 2/megamanii.png" class="game-icon"><div class="game-title">Mega Man 2</div></div></a>
+
+<a href="Emulators/Mega Man 3/megaman3.html" class="game-link"><div class="game-tile"><img src="Emulators/Mega Man 3/mega3.png" class="game-icon"><div class="game-title">Mega Man 3</div></div></a>
+
+<a href="Emulators/Mortal Kombat/mortalkombat.html" class="game-link"><div class="game-tile"><img src="Emulators/Mortal Kombat/mkyey.png" class="game-icon"><div class="game-title">Mortal Kombat</div></div></a>
+
+<a href="Emulators/Mortal Kombat 2/mortalkombat2.html" class="game-link"><div class="game-tile"><img src="Emulators/Mortal Kombat 2/mkii.png" class="game-icon"><div class="game-title">Mortal Kombat 2</div></div></a>
+
+<a href="Emulators/Mortal Kombat 3/mortalkombat3.html" class="game-link"><div class="game-tile"><img src="Emulators/Mortal Kombat 3/mk3.png" class="game-icon"><div class="game-title">Mortal Kombat 3</div></div></a>
+
+<a href="Emulators/Ms. Pac Man/mspacman.html" class="game-link"><div class="game-tile"><img src="Emulators/Ms. Pac Man/mspac.png" class="game-icon"><div class="game-title">Ms. Pac-Man</div></div></a>
+
+<a href="Emulators/Pac Man/pacman.html" class="game-link"><div class="game-tile"><img src="Emulators/Pac Man/pacman.png" class="game-icon"><div class="game-title">Pac-Man</div></div></a>
+
+<a href="Emulators/Sonic Advance/sonicadvance.html" class="game-link"><div class="game-tile"><img src="Emulators/Sonic Advance/savd.png" class="game-icon"><div class="game-title">Sonic Advance</div></div></a>
+
+<a href="Emulators/Sonic Advance 2/sonicadvance2.html" class="game-link"><div class="game-tile"><img src="Emulators/Sonic Advance 2/sa2.png" class="game-icon"><div class="game-title">Sonic Advance 2</div></div></a>
+
+<a href="Emulators/Sonic Advance 3/sonicadvance3.html" class="game-link"><div class="game-tile"><img src="Emulators/Sonic Advance 3/sa3.png" class="game-icon"><div class="game-title">Sonic Advance 3</div></div></a>
+
+<a href="Emulators/Sonic Classic Collection/sonicclassicc.html" class="game-link"><div class="game-tile"><img src="Emulators/Sonic Classic Collection/scc.png" class="game-icon"><div class="game-title">Sonic Classic Collection</div></div></a>
+
+<a href="Emulators/Sonic Colors/sonicolors.html" class="game-link"><div class="game-tile"><img src="Emulators/Sonic Colors/soniccolor.png" class="game-icon"><div class="game-title">Sonic Colors</div></div></a>
+
+<a href="Emulators/Sonic Rush/sonicrush.html" class="game-link"><div class="game-tile"><img src="Emulators/Sonic Rush/srus.png" class="game-icon"><div class="game-title">Sonic Rush</div></div></a>
+
+<a href="Emulators/Space Invaders/spaceinvaders.html" class="game-link"><div class="game-tile"><img src="Emulators/Space Invaders/space.png" class="game-icon"><div class="game-title">Space Invaders</div></div></a>
+
+<a href="Emulators/Street Fighter 2/streetfighter2.html" class="game-link"><div class="game-tile"><img src="Emulators/Street Fighter 2/st2.png" class="game-icon"><div class="game-title">Street Fighter 2</div></div></a>
+
+<a href="Emulators/Super Mario 64/supermario64.html" class="game-link"><div class="game-tile popular"><img src="Emulators/Super Mario 64/sm64.png" class="game-icon"><div class="game-title">Super Mario 64</div></div></a>
+
+<a href="Emulators/Super Mario Bros/supermariobros.html" class="game-link"><div class="game-tile"><img src="Emulators/Super Mario Bros/smb.png" class="game-icon"><div class="game-title">Super Mario Bros</div></div></a>
+
+<a href="Emulators/Super Mario Bros 2/supermariobros2.html" class="game-link"><div class="game-tile"><img src="Emulators/Super Mario Bros 2/smll.png" class="game-icon"><div class="game-title">Super Mario Bros 2</div></div></a>
+
+<a href="Emulators/Super Mario Bros 3/supermariobros3.html" class="game-link"><div class="game-tile"><img src="Emulators/Super Mario Bros 3/sm3y.png" class="game-icon"><div class="game-title">Super Mario Bros 3</div></div></a>
+
+<a href="Emulators/Super Smash Bros/supersmashbros.html" class="game-link"><div class="game-tile popular"><img src="Emulators/Super Smash Bros/sms.png" class="game-icon"><div class="game-title">Super Smash Bros</div></div></a>
+
+<a href="Emulators/Tecmo Bowl/tecmobowl49.html" class="game-link"><div class="game-tile"><img src="Emulators/Tecmo Bowl/tbdad.png" class="game-icon"><div class="game-title">Tecmo Bowl</div></div></a>
+
+<a href="Emulators/Tom Clancy's Rainbow Six/rainbow6.html" class="game-link"><div class="game-tile"><img src="Emulators/Tom Clancy's Rainbow Six/tcr6.png" class="game-icon"><div class="game-title">Rainbow Six</div></div></a>
+
+<a href="Emulators/Ultimate Mortal Kombat/ultimatemortalk.html" class="game-link"><div class="game-tile"><img src="Emulators/Ultimate Mortal Kombat/ultimatemk.png" class="game-icon"><div class="game-title">Ultimate MK</div></div></a>
+
+<a href="Emulators/Wolfenstein 3D/wolfenstein3d.html" class="game-link"><div class="game-tile"><img src="Emulators/Wolfenstein 3D/wolf.png" class="game-icon"><div class="game-title">Wolfenstein 3D</div></div></a>
 
 
-		
+</div>
 
-		    
+<script>
 
+/* ===== SEARCH ===== */
+document.getElementById("search").addEventListener("keyup", function() {
+  let filter = this.value.toLowerCase();
+  let games = document.querySelectorAll(".game-link");
 
-		
-		  
-		</div>
-	</div>
-    </div>
-    <div class="links-container"></div>
-  </div>
-</nav>
-		
-  </body>
+  games.forEach(game => {
+    let title = game.innerText.toLowerCase();
+    game.style.display = title.includes(filter) ? "block" : "none";
+  });
+});
+
+/* ===== CATEGORY FILTER ===== */
+function filterGames(category) {
+  let games = document.querySelectorAll(".game-link");
+
+  games.forEach(game => {
+    if (category === "all") {
+      game.style.display = "block";
+    } else {
+      let cats = game.getAttribute("data-category");
+      game.style.display = cats.includes(category) ? "block" : "none";
+    }
+  });
+}
+
+</script>
+
+</body>
 </html>
+
