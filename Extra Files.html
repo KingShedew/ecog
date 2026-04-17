@@ -1,731 +1,210 @@
+
 <!DOCTYPE html>
-<html>
-  <head>
-	<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-R1ZCLH6XCR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECOG Infinite</title>
 
-  gtag('config', 'G-R1ZCLH6XCR');
-</script>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2694073837597977"
-     crossorigin="anonymous"></script>
-	<link rel="stylesheet" href="styles.css">
-    <title>ECOG</title>
-	<link rel="icon" type="image/x-icon" href="games-site-logo.png" />
-    <link rel="shortcut icon" type="image/x-icon" href="games-site-logo.png" />
-    <meta property="og:description" content="We do got games on our phone." />
-    <meta name="description" content="We do got games on our phone." />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </head>
-  <body onload="startTime()">
-  
-  <div class="menubar">
-  <div class="topnav">
-  <a class="active" href="index.html">Games</a>
-  <a href="retro.html">Retro</a>
-  <a href="flash.html">Flash</a>
-			  <div class="topnav-right">
-	<a href="feedback.html"><img src="feedback.png" alt="Description for image" width="15" height="15"></a>
-	<a href="info.html"><img src="info.png" alt="Description for image" width="15" height="15"></a>
-	<a id="txt"></a>
-	<a id="hide">Hide</a>
-  </div>
-  </div>
-  </div>
-  
-  <div class="dropdown">
-  <button class="dropbtn">Image Size</button>
-  <div class="dropdown-content">
-    <input type="radio" id="small" name="size" value="small">
-    <label for="small">Small</label><br>
-    <input type="radio" id="medium" name="size" value="medium">
-    <label for="medium">Medium</label><br>
-    <input type="radio" id="large" name="size" value="large">
-    <label for="large">Large (OG)</label><br>
-  </div>
+<style>
+
+/* ===== GLOBAL ===== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: white;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a1a1a;
+  padding: 10px 20px;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* SEARCH */
+.search-box {
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+}
+
+/* ===== CATEGORY BUTTONS ===== */
+.categories {
+  text-align: center;
+  margin: 15px;
+}
+
+.categories button {
+  margin: 5px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: white;
+  cursor: pointer;
+}
+
+.categories button:hover {
+  background: #444;
+}
+
+/* ===== GRID ===== */
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* ===== GAME CARD ===== */
+.game-link {
+  text-decoration: none;
+}
+
+.game-tile {
+  background: #1c1c1c;
+  border-radius: 12px;
+  width: 180px;
+  padding: 10px;
+  text-align: center;
+  transition: 0.2s;
+}
+
+.game-tile:hover {
+  transform: scale(1.08);
+  background: #2a2a2a;
+  box-shadow: 0 0 15px rgba(255,255,255,0.15);
+}
+
+/* ===== IMAGE ===== */
+.game-icon {
+  width: 100%;
+  border-radius: 10px;
+}
+
+/* ===== TITLE ===== */
+.game-title {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* ===== POPULAR ===== */
+.popular {
+  border: 2px solid red;
+}
+
+</style>
+</head>
+
+<body>
+<!-- NAVIGATION BAR -->
+<style>
+.navbar {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.nav-button {
+    display: inline-block;
+    padding: 12px 20px;
+    margin: 10px;
+    background: linear-gradient(45deg, #00c6ff, #0072ff);
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.nav-button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #00f2fe, #4facfe);
+}
+</style>
+
+<div class="navbar">
+    <a href="index.html" class="nav-button">🏠 Main Page</a>
+    <a href="emulators.html" class="nav-button">🎮 Emulators</a>
 </div>
-  
-			<h1 class="text-center">All Games</h1>
-     <p class="text-center">Here is the full list of games on this site that do not fit into another category, play some of your favorites or find a new one!</p>
-	 <p class="text-center">If your favourite game is missing you can put it in the suggestion box in the top right</p>
-	 <p class="text-important">A red game tile means that it is within the top 5 most popular games this week</p>
-
-  <div class="sortbar">
-    <div class="topnav">
-	<a class="active">Sort by:</a>
-	<a href="#all">All</a>
-	<a href="#fnaf">FNAF</a>
-    <a href="#moto-x3m">Moto X3M</a>
-    <a href="#snail-bob">Snail Bob</a>
-	<a href="#vex">Vex</a>
-  </div>
-  </div>
-   <script src="JS/hide.js"></script>
-  <script src="JS/clock.js"></script>
-  <script src="JS/search.js"></script>
-  <script src="JS/size.js"></script>
-  <nav>
-  <div class="nav-container">
-    <div class="search-container">
-      <input class="search-box" id="search-box" type="search"  onkeyup="searching(this)" onfocus="fun(this)" placeholder="Search for Games">
-      <div class="search-results" id="search-results">
-	  
-      <div id="all" class="flex-container">
-          <a href="1v1.lol/1v1.LOL.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="1v1.lol/1v1lol1.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">1v1.LOL</h1>
-              </div>
-          </a>
-        
-          <a href="99nitf/99nights.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="99nitf/99nights.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">99 Nights In Forest</h1>
-              </div>
-          </a>
-
-           <a href="A Dance Of Fire And Ice/adofai.html" class="game-link container">
-              <div class="game-tile-popular">
-                  <img class="game-icon" src="A Dance Of Fire And Ice/adofai.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">ADOFAI</h1>
-              </div>
-          </a>
-		  
-		            <a href="A Dark Room/adarkroom.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="A Dark Room/darkroom.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">A Dark Room</h1>
-              </div>
-          </a>
-		  
-		  		  <a href="Agar.io Lite/agariolite.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Agar.io Lite/lite.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Agar.IO Lite</h1>
-              </div>
-          </a>
-		  
-		  		  <a href="Ages Of Conflict/ages of conflict.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Ages Of Conflict/agescon.jpg" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Ages Of Conflict</h1>
-              </div>
-          </a>
-		  
-		  		  <a href="Among Us/amongus.html" class="game-link container">
-              <div class="game-tile-popular">
-                  <img class="game-icon" src="Among Us/sus.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Among Us</h1>
-              </div>
-          </a>
-
- <a href="AquaPark IO/aquaparkio.html" class="game-link container">
-              <div class="game-tile-popular">
-                  <img class="game-icon" src="AquaPark IO/aqua.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Aquapark IO</h1>
-              </div>
-          </a>
-
-		          <a href="backrooms2d/Backrooms 2D.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="backrooms2d/backrooms.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Backrooms 2D</h1>
-              </div>
-          </a>
-
-		  
-		  <a href="Bacon May D1e/baconmayd1e.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Bacon May D1e/bacon.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Bacon May D!e</h1>
-              </div>
-          </a>
-		  
-		  <a href="Bad Parenting/badparenting.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Bad Parenting/parenting.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Bad Parenting</h1>
-              </div>
-          </a>
-		  
-		  <a href="Baldi's Basics/BaldisBasicsWORKING.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Baldi's Basics/baldi.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Baldi's Basics</h1>
-              </div>
-          </a>
-		  
-		  <a href="Bas/bas.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Bas/bas.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Bas</h1>
-              </div>
-          </a>
-		  
-		  <a href="Baseball Bros/BaseballBros.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Baseball Bros/baseballb.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Baseball Bros</h1>
-              </div>
-          </a>
-		  
-          <a href="Basketball Stars/basketballst4rs.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Basketball Stars/bstar.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Basketball Stars</h1>
-              </div>
-          </a>
-
-          <a href="Basketball Superstars/basketballSUPERSTARS.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Basketball Superstars/bsuperstar.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Basketball Superstars</h1>
-              </div>
-          </a>
-
-          <a href="Bitlife/bitlife.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Bitlife/bitl.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Bitlife</h1>
-              </div>
-          </a>
-
-          <a href="Brotato/brotato.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Brotato/brotato.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Brotato</h1>
-              </div>
-          </a>
-
-          <a href="CaseOhs Basics in Eating And Fast Food/caseohbasics.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="CaseOhs Basics in Eating And Fast Food/Caseoh.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Caseoh's Basics</h1>
-              </div>
-          </a>
-
-          <a href="Checkers/checkers.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Checkers/checkers.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Checkers</h1>
-              </div>
-          </a>			
-
-		  
-		  <a href="Chess Classic/chess classic.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Chess Classic/chessclassic.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Chess Classic</h1>
-              </div>
-          </a>
-		  
-		 <a href="Chess/chess.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Chess/chess.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Chess</h1>
-              </div>
-          </a>
-
-          <a href="Chicken War/chickenwar.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Chicken War/chickenwar.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Chicken War</h1>
-              </div>
-          </a>
-
-		            <a href="Clash Of Vikings/clashroyale.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Clash Of Vikings/clashv.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Clash Of Vikings</h1>
-              </div>
-          </a>
-
-          <a href="Cookie Clicker/cookieclicker.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Cookie Clicker/cclicker.jpeg" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Cookie Clicker</h1>
-              </div>
-          </a>
-		  
-		            <a href="Crossy Road/crossyroad.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Crossy Road/cross.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Crossy Road</h1>
-              </div>
-          </a>
-
-          <a href="Drift Boss/driftboss.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Drift Boss/driftb.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Drift Boss</h1>
-              </div>
-          </a>
-		  
-		            <a href="Drift Hunters/drifthunters.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Drift Hunters/drifthhhh.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Drift Hunters</h1>
-              </div>
-          </a>
-		  
-		  <a href="Escape Road/escaperoad.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Escape Road/escape.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Escape Road</h1>
-              </div>
-          </a>
-
-          <a href="Escape Road 2 City/escaperoad2city.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Escape Road 2 City/city2.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Escape Road City 2</h1>
-              </div>
-          </a>
-
-          <a href="Fall Guys/fallguys.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Fall Guys/fallguys.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Fall Guys</h1>
-              </div>
-          </a>
-
-          <a href="Five Nights At Baldis/fnab.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Five Nights At Baldis/fnab.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Five Nights At Baldi's</h1>
-              </div>
-          </a>
-
-          <a href="Five Nights At Freddy's/fnaf.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Five Nights At Freddy's/fnaf.png" alt="icon" width="360" height="360"/>
-                  <h1 class="game-title">Five Nights At Freddy's</h1>
-              </div>
-          </a>
-		  
-		  <a href="FNAF 2/FNAF2.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="FNAF 2/fnaf2.png" alt="icon" width="360" height="360"/>
-                  <h1 class="game-title">FNAF 2</h1>
-              </div>
-          </a>
-
-          <a href="FNAF3/fnaf3.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="FNAF3/fnaf3.png" alt="icon" width="360" height="360"/>
-                  <h1 class="game-title">FNAF 3</h1>
-              </div>
-          </a>
-		  
-		            <a href="FNAF4/fnaf4.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="FNAF4/fnaf4.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">FNAF 4</h1>
-              </div>
-          </a>
-
-          <a href="FNAF 4 Halloween/fnaf4halloween.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="FNAF 4 Halloween/fnaf4h.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">FNAF 4</h1>
-              </div>
-          </a>
-
-          <a href="FNAF Pizzeria Sim/FNAFpizzeriasimulator.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="FNAF Pizzeria Sim/fnafpiz.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">FNAF Pizzeria Simulator</h1>
-              </div>
-          </a>
-		  
-		  <a href="FNAF Ultimate Custom Night/FNAFucn.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="FNAF Ultimate Custom Night/UCN.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">FNAF Ultimate Custom Night</h1>
-              </div>
-          </a>
-		  
-		  <a href="FNAF sister location/Fnafsisterloco.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="FNAF sister location/sisterloco.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">FNAF Sister Location</h1>
-              </div>
-          </a>
-
-          <a href="Football Bros/footballbros.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Football Bros/footballbro.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Football Bros</h1>
-              </div>
-          </a>
-		  
-		  <a href="Friday Night Funkin/fnf.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Friday Night Funkin/fnf.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Friday Night Funkin'</h1>
-              </div>
-          </a>
-		  
-		  <a href="Geometry Dash Lite/geodashlite.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Geometry Dash Lite/geo.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Geometry Dash Lite</h1>
-              </div>
-          </a>
-		  
-		  <a href="Geometry Vibes/geometryvibes.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Geometry Vibes/geovibe.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Geometry Vibes</h1>
-              </div>
-          </a>
-		  
-		  <a href="Getaway Shootout/getawayshootout.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Getaway Shootout/getaway.png" alt="icon" width="360" height="360">
-                  <h1 class="game-title">Getaway Shootout</h1>
-              </div>
-          </a>
-
-          <a href="Granny/GRANNY.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Granny/granny.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Granny</h1>
-              </div>
-          </a>
-		  
-		  <a href="Gunblood/gunblood.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Gunblood/gunblood.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Gunblood</h1>
-              </div>
-          </a>
-
-          <a href="Hollow Knight Silksong/hollowknightsilksong.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Hollow Knight Silksong/hks.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Hollow Knight: Silksong</h1>
-              </div>
-          </a>
-
-          <a href="Huggy Wuggy Pixel Nights/huggypixelnights.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Huggy Wuggy Pixel Nights/hwpn.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Huggy Wuggy Pixel Nights</h1>
-              </div>
-          </a>
-
-          <a href="Just Hit The Button/jhtb.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Just Hit The Button/jhtb.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Just Hit The Button</h1>
-              </div>
-          </a>
-		
-		  <a href="Nova Craft/nOvAcraft.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Nova Craft/infc.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Nova Craft</h1>
-              </div>
-          </a>
-
-          <a href="Obby 99 Will Lose/obby99willlose.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Obby 99 Will Lose/99.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Obby 99 Will Lose</h1>
-              </div>
-          </a>
-		  
-		  <a href="OmegaNuggetClicker/omeganugget.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="OmegaNuggetClicker/weiaufshsiouomega.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Omega Nugget Clicker</h1>
-              </div>
-          </a>
-
-          <a href="Raldi's Cr*CK house/Raldi's Crackhouse (1).HTML" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Raldi's Cr*CK house/raldi.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Raldi's Cr@ckhouse</h1>
-              </div>
-          </a>
-		  
-		            <a href="Run 3/run_3.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Run 3/run3.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Run 3</h1>
-              </div>
-          </a>
-		  
-		            <a href="Sand Boxels/SandBoxels.HTML" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Sand Boxels/sandbox.jpg" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Sandboxels</h1>
-              </div>
-          </a>
-		  
-		            <a href="Slither IO/slitherIO.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Slither IO/slith.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Slither IO</h1>
-              </div>
-          </a>
-		</div>
-		
-		  <a href="Slope 2 player/Slope2Player.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Slope 2 player/slope2.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Slope 2 Player</h1>
-              </div>
-          </a>
-		  
-		  <a href="Slope 3/slope 3.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Slope 3/slope3.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Slope 3</h1>
-              </div>
-          </a>
-		  
-		  <a href="Snowrider 3D/snowrider3d.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Snowrider 3D/snowrider.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Snow Rider 3D</h1>
-              </div>
-          </a>
-		  
-		  <a href="Sonic 1/sonic 1.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Sonic 1/sonic.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Sonic</h1>
-              </div>
-          </a>
-		  
-		  <a href="Space Waves/space waves.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Space Waves/sace.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Space Waves</h1>
-              </div>
-          </a>
-		  
-		  <a href="Station 141/station141.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Station 141/141.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Station 141</h1>
-              </div>
-          </a>
-		  
-		  <a href="Station Meltdown/stationmeltdown.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Station Meltdown/stationmelt.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Station Meltdown</h1>
-              </div>
-          </a>
-		  
-		  <a href="Station Saturn/stationsaturn.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Station Saturn/statsat.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Snail Bob 8</h1>
-              </div>
-          </a>
-		</div>
-
-          <a href="Steal A Brainrot/stealabrainrot.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Steal A Brainrot/sab.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Steal A Brainrot</h1>
-              </div>
-          </a>
-
-          <a href="Stealth Assasin/StealthAssasin.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Stealth Assasin/stealth.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Stealth Assasin</h1>
-              </div>
-          </a>
-
-          <a href="Stickman Hook/stickman hook.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Stickman Hook/stickmanh.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Stickman Hook</h1>
-              </div>
-          </a>
-
-          <a href="Subway Surfers Barcelona/subway surfers barcelona.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Barcelona/sbbarce.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Barcelona</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers Beijing/SubwaySurfersBeijing.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Beijing/beij.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Beijing</h1>
-              </div>
-          </a>
-		
-		          <a href="Subway Surfers Berlin/subwaysurfersberlin.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Berlin/Berlin.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Berlin</h1>
-              </div>
-          </a>
-		
-		          <a href="Subway Surfers Buenos Aires/subwaysurfersbuenosaires.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Buenos Aires/Buenos.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Buesnos Aires</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers Havana/subwaysurfershavana.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Havana/Havana.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Havana</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers Houston/subway surfers houston.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Houston/Houston.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Houston</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers Iceland/subwaysurfersiceland.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Iceland/iceicebaby.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Iceland</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers London/subwaysurferslondon.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers London/London.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers London</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers Mexico/subway surfers mexico.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Mexico/mexcringe.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Mexico</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers Miami/subwaysurfersmiami.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Miami/miami.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Miami</h1>
-              </div>
-          </a>
 
 
-		          <a href="Subway Surfers Monaco/subway surfers monaco.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Monaco/Monaco.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Monaco</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers Winter Holiday yay/SubwaySurfersWinterholiday.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Winter Holiday yay/winthol.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Winter Holiday</h1>
-              </div>
-          </a>
-
-		          <a href="Subway Surfers Zurich/subway surfers zurich.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Subway Surfers Zurich/Pablo.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Subway Surfers Zurich</h1>
-              </div>
-          </a>
-
-		          <a href="Superhot/superhot.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Superhot/superh.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Super Hot</h1>
-              </div>
-          </a>
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="logo">ECOG Infinite</div>
+  <input type="text" id="search" class="search-box" placeholder="Search games...">
+</div>
 
 
-		          <a href="Telekinesis/Telekenisis.HTML" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Telekinesis/telek.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Telekinesis</h1>
-              </div>
-          </a>
+<!-- GAMES -->
+<div class="flex-container" id="gameContainer">
+
+<a href="Extra Files/3DPlatformer/3dplatformer.html" class="game-link"><div class="game-tile"><img src="Extra Files/3DPlatformer/3dp.png" class="game-icon"><div class="game-title">3D Platformer</div></div></a>
+
+<a href="Extra Files/AI Flappy Bird/flappycoder.html" class="game-link"><div class="game-tile"><img src="Extra Files/AI Flappy Bird/aif.png" class="game-icon"><div class="game-title">AI Flappy Bird</div></div></a>
+
+<a href="Emulators/COD 4 Modern Warefare/COD4MW.html" class="game-link"><div class="game-tile"><img src="Emulators/COD 4 Modern Warefare/mw4.png" class="game-icon"><div class="game-title">COD 4 MW</div></div></a>
+
+<a href="Emulators/COD World At War/CODWAW.html" class="game-link"><div class="game-tile"><img src="Emulators/COD World At War/yayay.png" class="game-icon"><div class="game-title">COD WAW</div></div></a>
+
+<a href="Emulators/Call Of Duty Modern Warfare 3 Defiance/codmw3d.html" class="game-link"><div class="game-tile"><img src="Emulators/Call Of Duty Modern Warfare 3 Defiance/mw3d.png" class="game-icon"><div class="game-title">MW3 Defiance</div></div></a>
+
+<a href="Emulators/Counter Strike/counterstrike.html" class="game-link"><div class="game-tile"><img src="Emulators/Counter Strike/counters.png" class="game-icon"><div class="game-title">Counter Strike</div></div></a>
+
+<a href="Emulators/Crash Bandicoot/crashbandicoot.html" class="game-link"><div class="game-tile"><img src="Emulators/Crash Bandicoot/crashbro.png" class="game-icon"><div class="game-title">Crash Bandicoot</div></div></a>
+
+<a href="Emulators/DB Advance Adventure/DragonballAdvancedA.html" class="game-link"><div class="game-tile"><img src="Emulators/DB Advance Adventure/venutrevance.png" class="game-icon"><div class="game-title">DB Advance Adventure</div></div></a>
+
+<a href="Emulators/DBZ Super Sonic Warriors/dbzsupersonicwarriors.html" class="game-link"><div class="game-tile"><img src="Emulators/DBZ Super Sonic Warriors/superson.png" class="game-icon"><div class="game-title">DBZ Supersonic Warriors</div></div></a>
+
+<a href="Emulators/DBZ The Legacy Of Goku/dbzthelegacyofgoku.html" class="game-link"><div class="game-tile"><img src="Emulators/DBZ The Legacy Of Goku/dbzlegacy.png" class="game-icon"><div class="game-title">DBZ Legacy of Goku</div></div></a>
+
+<a href="Emulators/Diablo/diablo.html" class="game-link"><div class="game-tile"><img src="Emulators/Diablo/diablo.png" class="game-icon"><div class="game-title">Diablo</div></div></a>
+
+<a href="Emulators/Dig Dug/digdug.html" class="game-link"><div class="game-tile"><img src="Emulators/Dig Dug/dugdg.png" class="game-icon"><div class="game-title">Dig Dug</div></div></a>
 
 
-		          <a href="Temple Run 2/templeRun2.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Temple Run 2/templerun2.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Temple Run 2</h1>
-              </div>
-          </a>
+</div>
 
-		          <a href="tomb/totm.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="tomb/totm.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Totm</h1>
-              </div>
-          </a>
+<script>
 
-		          <a href="Twerk Race 3D/Tw3rk Race 3D.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Twerk Race 3D/t3rk.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Twerk Race 3D</h1>
-              </div>
-          </a>
+/* ===== SEARCH ===== */
+document.getElementById("search").addEventListener("keyup", function() {
+  let filter = this.value.toLowerCase();
+  let games = document.querySelectorAll(".game-link");
 
+  games.forEach(game => {
+    let title = game.innerText.toLowerCase();
+    game.style.display = title.includes(filter) ? "block" : "none";
+  });
+});
 
-		          <a href="Unicycle Hero/unicyclehero.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Unicycle Hero/unic.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Unicycle Hero</h1>
-              </div>
-          </a>
+/* ===== CATEGORY FILTER ===== */
+function filterGames(category) {
+  let games = document.querySelectorAll(".game-link");
 
+  games.forEach(game => {
+    if (category === "all") {
+      game.style.display = "block";
+    } else {
+      let cats = game.getAttribute("data-category");
+      game.style.display = cats.includes(category) ? "block" : "none";
+    }
+  });
+}
 
-		          <a href="We Become What We Behold/webecomewhatwebehold.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="We Become What We Behold/webec.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">We Become What We Behold</h1>
-              </div>
-          </a>
+</script>
 
-
-		          <a href="You Vs 100 Skibidi/you vs 100 skibidi.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="You Vs 100 Skibidi/100skib.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">You vs 100 Skibidi</h1>
-              </div>
-          </a>
-
-
-		          <a href="Zombie Rush/zombierush.html" class="game-link container">
-              <div class="game-tile">
-                  <img class="game-icon" src="Zombie Rush/zmb.png" alt="icon" width="360" height="360" />
-                  <h1 class="game-title">Zombie Rush</h1>
-              </div>
-          </a>
-
-
-
-		
-		  
-		</div>
-	</div>
-    </div>
-    <div class="links-container"></div>
-  </div>
-</nav>
-		
-  </body>
+</body>
 </html>
