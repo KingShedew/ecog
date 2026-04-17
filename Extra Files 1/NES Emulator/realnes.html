@@ -2,116 +2,116 @@
 <html lang="en">
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web NES Emulator</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Web NES Emulator</title>
 
-<script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
+	<script src="https://cdn.tailwindcss.com"></script>
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-body {
-    background-color: #1a1a1a;
-    color: #f0f0f0;
-    font-family: 'Press Start 2P', cursive;
-}
+		body {
+			background-color: #1a1a1a;
+			color: #f0f0f0;
+			font-family: 'Press Start 2P', cursive;
+		}
 
-/* Splash Screen */
-#splash-screen {
-    position: fixed;
-    inset: 0;
-    background: black;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    text-align: center;
-    transition: opacity 0.8s ease;
-}
+		/* Splash Screen */
+		#splash-screen {
+			position: fixed;
+			inset: 0;
+			background: black;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			z-index: 9999;
+			text-align: center;
+			transition: opacity 0.8s ease;
+		}
 
-#splash-screen.fade-out {
-    opacity: 0;
-    pointer-events: none;
-}
+		#splash-screen.fade-out {
+			opacity: 0;
+			pointer-events: none;
+		}
 
-.nes-container {
-    border: 4px solid #f0f0f0;
-    image-rendering: pixelated;
-}
+		.nes-container {
+			border: 4px solid #f0f0f0;
+			image-rendering: pixelated;
+		}
 
-canvas {
-    width: 100%;
-    height: auto;
-    max-width: 512px;
-    background: #000;
-}
+		canvas {
+			width: 100%;
+			height: auto;
+			max-width: 512px;
+			background: #000;
+		}
 
-.pixel-btn {
-    box-shadow: 4px 4px 0px #000;
-    transition: transform 0.1s;
-}
+		.pixel-btn {
+			box-shadow: 4px 4px 0px #000;
+			transition: transform 0.1s;
+		}
 
-.pixel-btn:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000;
-}
-</style>
+		.pixel-btn:active {
+			transform: translate(2px, 2px);
+			box-shadow: 2px 2px 0px #000;
+		}
+	</style>
 </head>
 
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
 
-<!-- Splash Screen -->
-<div id="splash-screen">
-    <img src="https://via.placeholder.com/150" alt="Person" style="margin-bottom:20px;">
-    <h1 style="color:#facc15; font-size:18px;">ECOG Unlimited</h1>
-    <p style="font-size:10px; color:gray; margin-top:10px;">Loading Emulator...</p>
-</div>
+	<!-- Splash Screen -->
+	<div id="splash-screen">
+		<img src="https://via.placeholder.com/150" alt="Person" style="margin-bottom:20px;">
+		<h1 style="color:#facc15; font-size:18px;">If you are viewing this emulator on ECOG Infinite...</h1>
+		<p style="font-size:10px; color:gray; margin-top:10px;">Go to "Other Files", and then click on Famidash. Drag Famidash into the emulator window to load.</p>
+	</div>
 
-<div class="max-w-2xl w-full text-center">
-    <h1 class="text-2xl mb-8 text-yellow-400">8-BIT EMULATOR</h1>
+	<div class="max-w-2xl w-full text-center">
+		<h1 class="text-2xl mb-8 text-yellow-400">8-BIT EMULATOR</h1>
 
-    <!-- Screen Area -->
-    <div class="nes-container mx-auto mb-6 bg-black relative">
-        <canvas id="nes-canvas" width="256" height="240"></canvas>
+		<!-- Screen Area -->
+		<div class="nes-container mx-auto mb-6 bg-black relative">
+			<canvas id="nes-canvas" width="256" height="240"></canvas>
 
-        <div id="drop-zone"
-            class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 border-2 border-dashed border-gray-500 cursor-pointer hover:border-yellow-400 transition-colors">
-            <p class="text-[10px] p-4 pointer-events-none">
-                DRAG & DROP .NES FILE<br>OR CLICK TO UPLOAD
+			<div id="drop-zone"
+				class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 border-2 border-dashed border-gray-500 cursor-pointer hover:border-yellow-400 transition-colors">
+				<p class="text-[10px] p-4 pointer-events-none">
+					DRAG & DROP .NES FILE<br>OR CLICK TO UPLOAD
             </p>
-            <input type="file" id="file-input" class="hidden" accept=".nes">
+					<input type="file" id="file-input" class="hidden" accept=".nes">
         </div>
-    </div>
+			</div>
 
-    <!-- Controls -->
-    <div class="grid grid-cols-2 gap-4 text-[8px] mb-8 bg-gray-800 p-4 rounded">
-        <div>
-            <p class="text-yellow-400 mb-2 underline">CONTROLS</p>
-            <p>DPAD: ARROW KEYS</p>
-            <p>A: X | B: Z</p>
-        </div>
-        <div>
-            <p class="text-yellow-400 mb-2 underline">SYSTEM</p>
-            <p>START: ENTER</p>
-            <p>SELECT: SHIFT</p>
-        </div>
-    </div>
+			<!-- Controls -->
+			<div class="grid grid-cols-2 gap-4 text-[8px] mb-8 bg-gray-800 p-4 rounded">
+				<div>
+					<p class="text-yellow-400 mb-2 underline">CONTROLS</p>
+					<p>DPAD: ARROW KEYS</p>
+					<p>A: X | B: Z</p>
+				</div>
+				<div>
+					<p class="text-yellow-400 mb-2 underline">SYSTEM</p>
+					<p>START: ENTER</p>
+					<p>SELECT: SHIFT</p>
+				</div>
+			</div>
 
-    <!-- Buttons -->
-    <div class="flex flex-wrap justify-center gap-4">
-        <button onclick="loadSample('https://jsnes.org/roms/lj65.nes')" class="pixel-btn bg-blue-600 px-4 py-2 text-[10px]">PLAY LJ65</button>
-        <button onclick="loadSample('https://jsnes.org/roms/croom.nes')" class="pixel-btn bg-green-600 px-4 py-2 text-[10px]">PLAY CROOM</button>
-        <button id="reset-btn" class="pixel-btn bg-red-600 px-4 py-2 text-[10px] hidden">RESET</button>
-    </div>
+			<!-- Buttons -->
+			<div class="flex flex-wrap justify-center gap-4">
+				<button onclick="loadSample('https://jsnes.org/roms/lj65.nes')" class="pixel-btn bg-blue-600 px-4 py-2 text-[10px]">PLAY LJ65</button>
+				<button onclick="loadSample('https://jsnes.org/roms/croom.nes')" class="pixel-btn bg-green-600 px-4 py-2 text-[10px]">PLAY CROOM</button>
+				<button id="reset-btn" class="pixel-btn bg-red-600 px-4 py-2 text-[10px] hidden">RESET</button>
+			</div>
 
-    <p id="status" class="mt-6 text-[8px] text-gray-500">READY</p>
-</div>
+			<p id="status" class="mt-6 text-[8px] text-gray-500">READY</p>
+		</div>
 
-<script>
-const canvas = document.getElementById('nes-canvas');
+		<script>
+			const canvas = document.getElementById('nes-canvas');
 const context = canvas.getContext('2d');
 const status = document.getElementById('status');
 const dropZone = document.getElementById('drop-zone');
@@ -251,7 +251,8 @@ window.addEventListener("load", () => {
         }, 800);
     }, 5000);
 });
-</script>
+		</script>
 
 </body>
+
 </html>
