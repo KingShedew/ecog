@@ -12,4 +12,7 @@
 
 ## Developers
 
-fdfd
+* [KingShedew](https://github.com/KingShedew)
+* [Axo](https://github.com/axo323lotl-bit)
+* [Creep](https://github.com/creepdud000)
+* Tomato77
